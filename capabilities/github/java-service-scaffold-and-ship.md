@@ -62,6 +62,31 @@ File Engine after the clone, where no encoding is involved at all.
 > The right long-term fix is a `files mkdir` operation on the provider, not
 > a cleverer capability. See "Gap" below.
 
+## Lineage — what this re-derives, and why it had to
+
+Almost every step here already exists as a capability of its own. They are
+inlined rather than called, because the grammar has no `capability:` step and
+no recursion into `runtime` (`binary: runtime` is not in `allowed_binaries`) —
+a capability composes providers and binaries only.
+
+| Steps | Existing capability re-derived |
+|---|---|
+| 1–3 | [`github-file-push.md`](./github-file-push.md), three times |
+| 4, 13–15 | [`github-git-clone-commit-push.md`](./github-git-clone-commit-push.md) |
+| 5–10, 12 | [`../files/scaffold-service-docs.md`](../files/scaffold-service-docs.md) — multi-write, then `list` to confirm |
+| 16–17 | [`github-workflow-dispatch-and-list.md`](./github-workflow-dispatch-and-list.md) |
+
+Two of those could not have been called even if the grammar allowed it:
+`github-git-clone-commit-push.md` takes a single `path`/`content` pair and
+commits immediately, leaving no seam to insert six writes between the clone
+and the `git add`. Steps 16–17 **are** cleanly separable — no data dependency
+on the scaffold beyond the repository name — and are kept inline only so that
+one `execute` either ships the service and triggers its pipeline, or stops at
+the first failure without doing half of it.
+
+Recorded so the duplication stays visible if the capability grammar ever
+gains composition.
+
 ## Requirements
 
 - `RUNTIME_GITHUB_TOKEN` valid (`runtime auth status`) with `contents: write`
