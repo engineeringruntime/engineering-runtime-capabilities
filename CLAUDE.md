@@ -29,8 +29,9 @@ executes — same inputs, same outcome, every time, under Bootstrap → Context
 
 Reusable, general-purpose capabilities belong **here**. One-off demos and
 sample projects belong in `../engineering-runtime-samples`. Runtime source,
-engines, and providers belong in `../engineering-runtime` — never bolt
-workflow logic into the binary.
+engines, and providers belong in `../engineering-runtime`. AI sessions that
+should only invoke `runtime` (never `gh`/cloud CLIs directly) use
+`../engineering-runtime-ai-agent`. Never bolt workflow logic into the binary.
 
 ## How the runtime finds specs, commands, and capabilities
 
