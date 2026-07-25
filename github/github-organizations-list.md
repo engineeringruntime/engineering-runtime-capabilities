@@ -15,5 +15,6 @@ runtime capability execute github/github-organizations-list.md
 version: v1
 
 workflow:
-  - command: github.organizations.list
+  - provider: github
+    args: [org, list]
 ```

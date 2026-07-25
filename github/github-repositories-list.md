@@ -15,5 +15,6 @@ runtime capability execute github/github-repositories-list.md
 version: v1
 
 workflow:
-  - command: github.repositories.list
+  - provider: github
+    args: [repo, list]
 ```

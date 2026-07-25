@@ -1,7 +1,7 @@
 # List repositories for any GitHub organization
 
 Uses the generic `github.request` pass-through instead of
-`github.repositories.list_for_org` so it can target *any* org by name —
+`repo list` with an org argument so it can target *any* org by name —
 not just the one bound to the active Runtime Context. Requires
 `RUNTIME_GITHUB_TOKEN` to be exported.
 
@@ -22,6 +22,6 @@ inputs:
     required: true
 
 workflow:
-  - command: github.request
-    args: [GET, "/orgs/${organization}/repos"]
+  - provider: github
+    args: [api, GET, "/orgs/${organization}/repos"]
 ```

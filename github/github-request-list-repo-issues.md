@@ -28,6 +28,6 @@ inputs:
     required: true
 
 workflow:
-  - command: github.request
-    args: [GET, "/repos/${owner}/${repo}/issues", "state=${state}"]
+  - provider: github
+    args: [api, GET, "/repos/${owner}/${repo}/issues", "state=${state}"]
 ```

@@ -2,7 +2,7 @@
 
 Single-step capability wrapping the fixed `POST /user/repos` Runtime
 Command. Every declared input becomes a `key=value` arg, which the
-Runtime Command coerces into a JSON body field (`true`/`false`/numbers
+REST Engine coerces into a JSON body field (`true`/`false`/numbers
 are coerced automatically). Requires `RUNTIME_GITHUB_TOKEN` to be
 exported.
 
@@ -30,6 +30,6 @@ inputs:
     required: true
 
 workflow:
-  - command: github.repositories.create
-    args: ["name=${name}", "private=${private}", "description=${description}"]
+  - provider: github
+    args: [repo, create, "name=${name}", "private=${private}", "description=${description}"]
 ```

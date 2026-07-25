@@ -1,6 +1,7 @@
 # Create an issue via the GitHub CLI
 
-A raw Command Engine invocation (`command.run`, `binary: gh`). Runs
+A raw Command Engine invocation (`binary: gh`) — the escape hatch for
+what the provider does not expose. Runs
 `gh issue create` against whichever repo `gh` is currently configured
 for. Requires `gh` to be installed and authenticated.
 
@@ -24,7 +25,6 @@ inputs:
     required: true
 
 workflow:
-  - command: command.run
-    binary: gh
+  - binary: gh
     args: [issue, create, --title, "${title}", --body, "${body}"]
 ```

@@ -16,11 +16,12 @@ runtime capability execute github/github-daily-digest.md
 version: v1
 
 workflow:
-  - command: github.notifications.list
+  - provider: github
+    args: [notification, list]
 
-  - command: github.issues.list_for_org
+  - provider: github
+    args: [issue, list]
 
-  - command: command.run
-    binary: gh
+  - binary: gh
     args: [pr, list]
 ```

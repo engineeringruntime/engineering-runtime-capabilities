@@ -1,6 +1,6 @@
 # Organization health check
 
-Chains four read-only Runtime Commands into a single snapshot of the
+Chains four read-only operations into a single snapshot of the
 active Runtime Context's GitHub organization: the orgs the token
 belongs to, the org's repositories, its teams, and issues assigned to
 the authenticated user across it. No inputs — every step resolves
@@ -18,11 +18,15 @@ runtime capability execute github/github-org-health-check.md
 version: v1
 
 workflow:
-  - command: github.organizations.list
+  - provider: github
+    args: [org, list]
 
-  - command: github.repositories.list_for_org
+  - provider: github
+    args: [repo, list]
 
-  - command: github.teams.list
+  - provider: github
+    args: [team, list]
 
-  - command: github.issues.list_for_org
+  - provider: github
+    args: [issue, list]
 ```

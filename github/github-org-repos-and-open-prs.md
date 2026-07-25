@@ -1,7 +1,7 @@
 # List an organization's repositories and open pull requests
 
 Lists every repository in a GitHub organization via the REST API (a
-registered Runtime Command), then lists open pull requests via the
+a provider operation), then lists open pull requests via the
 GitHub CLI (a raw Command Engine invocation). The clearest illustration
 of why the Runtime block grammar has two step shapes — both dispatch
 through the identical `Execute`/`RunCommand` lifecycle. Requires
@@ -25,10 +25,9 @@ inputs:
     required: true
 
 workflow:
-  - command: github.request
-    args: [GET, "/orgs/${organization}/repos"]
+  - provider: github
+    args: [api, GET, "/orgs/${organization}/repos"]
 
-  - command: command.run
-    binary: gh
+  - binary: gh
     args: [pr, list]
 ```

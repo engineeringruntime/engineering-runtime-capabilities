@@ -29,6 +29,6 @@ inputs:
     required: true
 
 workflow:
-  - command: github.request
-    args: [PATCH, "/repos/${owner}/${repo}", "description=${description}"]
+  - provider: github
+    args: [api, PATCH, "/repos/${owner}/${repo}", "description=${description}"]
 ```

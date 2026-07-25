@@ -15,5 +15,6 @@ runtime capability execute github/github-notifications-list.md
 version: v1
 
 workflow:
-  - command: github.notifications.list
+  - provider: github
+    args: [notification, list]
 ```

@@ -32,10 +32,9 @@ inputs:
     required: true
 
 workflow:
-  - command: github.repositories.create
-    args: ["name=${name}", "private=${private}", "description=${description}"]
+  - provider: github
+    args: [repo, create, "name=${name}", "private=${private}", "description=${description}"]
 
-  - command: command.run
-    binary: gh
+  - binary: gh
     args: [repo, list, --limit, "${limit}"]
 ```

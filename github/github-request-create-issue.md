@@ -32,6 +32,6 @@ inputs:
     required: true
 
 workflow:
-  - command: github.request
-    args: [POST, "/repos/${owner}/${repo}/issues", "title=${title}", "body=${body}"]
+  - provider: github
+    args: [api, POST, "/repos/${owner}/${repo}/issues", "title=${title}", "body=${body}"]
 ```
