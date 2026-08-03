@@ -2,16 +2,8 @@
 
 ## `control-plane-catalog-reminder.sh`
 
-Triggers on: `capabilities/**/*.md` (PostToolUse Write|Edit).
+Triggers on: `capabilities/**/*.md`.
 
-Regenerates `engineering-runtime-app-api`'s `catalog.json` from this repo +
-sibling `engineering-runtime` providers so portal Live / App UI pick up new
-capabilities after the next API deploy. The hosted API never clones this
-repo live.
-
-Requires sibling layout (or env overrides):
-
-| Env | Default |
-|---|---|
-| `ENGINEERING_RUNTIME_APP_API_DIR` | `../control-plane/engineering-runtime-app-api` |
-| `ENGINEERING_RUNTIME_DIR` | `../engineering-runtime` |
+Reminds that **this repo is a replica**. Control Plane catalog SSOT is
+[`engineering-runtime/capabilities`](https://github.com/kishore-gutta/engineering-runtime)
+— edit there for portal./app. lists.
