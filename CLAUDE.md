@@ -28,7 +28,7 @@ executes — same inputs, same outcome, every time, under Bootstrap → Context
 | `*/README.md` | Per-provider index, inputs, and run examples |
 
 Reusable, general-purpose capabilities belong **here**. One-off demos and
-sample projects belong in `../engineering-runtime-samples`. Runtime source,
+sample projects belong in `../engineering-runtime-ci`. Runtime source,
 engines, and providers belong in `../engineering-runtime`. AI sessions that
 should only invoke `runtime` (never `gh`/cloud CLIs directly) use
 `../engineering-runtime-ai-agent`. Never bolt workflow logic into the binary.
