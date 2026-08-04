@@ -1,10 +1,12 @@
 # GitHub Capabilities
 
 Every capability in this folder is a Markdown file with an embedded
-` ```runtime ` workflow block, authored against:
+` ```runtime ` workflow block, authored against the specs that ship with
+the runtime binary (sibling repo `engineering-runtime/`, or
+`runtime-home/specs/` after `runtime bootstrap`):
 
-- [`specs/capability-spec.md`](../../specs/capability-spec.md) — the generic grammar and rules
-- [`specs/github/capability-spec-github.md`](../../specs/github/capability-spec-github.md) — the GitHub Provider's operations
+- [`specs/capability-spec.md`](../../../engineering-runtime/specs/capability-spec.md) — the generic grammar and rules
+- [`specs/github/capability-spec-github.md`](../../../engineering-runtime/specs/github/capability-spec-github.md) — the GitHub Provider's operations
 
 The runtime never executes the Markdown around the block — only the fenced
 block itself; everything else exists for humans and AI to read.
@@ -26,7 +28,7 @@ Whether `repo list` reaches GitHub over REST, GraphQL, or the `gh` CLI is
 the **GitHub Provider's** decision, not the capability's. That is what lets
 an operation change transport in a later runtime version without breaking
 any file here. See
-[`docs/04-design-decisions/adr-005-provider-layer.md`](../../docs/04-design-decisions/adr-005-provider-layer.md).
+[`docs/04-design-decisions/adr-005-provider-layer.md`](../../../engineering-runtime/docs/04-design-decisions/adr-005-provider-layer.md).
 
 Run `runtime github --help` for the live operation surface, including the
 transport chosen for each operation.

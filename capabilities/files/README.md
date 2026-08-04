@@ -1,10 +1,12 @@
 # files Capabilities
 
 Every capability in this folder is a Markdown file with an embedded
-` ```runtime ` workflow block, authored against:
+` ```runtime ` workflow block, authored against the specs that ship with
+the runtime binary (sibling repo `engineering-runtime/`, or
+`runtime-home/specs/` after `runtime bootstrap`):
 
-- [`specs/capability-spec.md`](../../specs/capability-spec.md) — the generic grammar and rules
-- [`specs/files/capability-spec-files.md`](../../specs/files/capability-spec-files.md) — the files Provider's operations
+- [`specs/capability-spec.md`](../../../engineering-runtime/specs/capability-spec.md) — the generic grammar and rules
+- [`specs/files/capability-spec-files.md`](../../../engineering-runtime/specs/files/capability-spec-files.md) — the files Provider's operations
 
 All `files` capabilities are auth-free — the provider declares no Auth
 Engine provider, so none of these need any credential configured. They
