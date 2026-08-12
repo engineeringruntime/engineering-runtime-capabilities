@@ -50,15 +50,15 @@ not required** — the Command Engine forwards the validated token as
 | `github-user-get.md` | `user get` | — |
 | `github-organizations-list.md` | `org list` | — |
 | `github-notifications-list.md` | `notification list` | — |
-| `github-teams-list.md` | `team list` | — |
-| `github-issues-list-for-org.md` | `issue list` | — |
+| `github-teams-list.md` | `team list` | `organization` |
+| `github-issues-list-for-org.md` | `issue list` | `organization` |
 | `github-repositories-list.md` | `repo list` | — |
-| `github-repositories-list-for-org.md` | `repo list` | — |
+| `github-repositories-list-for-org.md` | `repo list` | `organization` |
 | `github-repositories-create.md` | `repo create` | `name`, `private`, `description` |
 | `github-repositories.md` | `repo list`, `pr list` | `organization` |
 | `github-repo-health.md` | `repo summary`, `pr list`, `run list` | `repository` |
 | `github-repo-bootstrap.md` | `repo create` + `gh repo list` | `name`, `private`, `description`, `limit` |
-| `github-org-health-check.md` | `org list`, `repo list`, `team list`, `issue list` | — |
+| `github-org-health-check.md` | `org list`, `repo list`, `team list`, `issue list` | `organization` |
 | `github-org-repos-and-open-prs.md` | `api GET /orgs/{org}/repos` + `gh pr list` | `organization` |
 | `github-daily-digest.md` | `notification list`, `issue list` + `gh pr list` | — |
 | `github-request-list-org-repos.md` | `api GET /orgs/{org}/repos` | `organization` |
@@ -69,7 +69,7 @@ not required** — the Command Engine forwards the validated token as
 | `github-file-update.md` | `api GET` + `api PUT /repos/{repo}/contents/{path}` | `repository`, `path`, `message`, `content_base64`, `sha` |
 | `github-git-clone-commit-push.md` | `git clone/add/commit/push` (raw binary) + `files write` | `repository_url`, `workdir`, `path`, `content`, `message` |
 | `github-repo-view.md` | `repo view` | `repository` |
-| `github-issue-create-and-list.md` | `issue create`, `issue list` | `title`, `body` |
+| `github-issue-create-and-list.md` | `issue create`, `issue list` | `organization`, `title`, `body` |
 | `github-pr-open-and-inspect.md` | `pr create`, `pr view` | `title`, `body`, `number` |
 | `github-workflow-dispatch-and-list.md` | `workflow run`, `workflow list` | `workflow`, `ref` |
 | `github-actions-run-inspect.md` | `run list`, `run view` | `run_id` |
