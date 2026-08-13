@@ -186,13 +186,13 @@ inputs:
 
 workflow:
   - provider: github
-    args: [api, PUT, "/repos/${repository}/contents/src/main/java/${java_package_path}/.gitkeep", "message=Seed java source path for ${service_name}", "content=c2VlZA=="]
+    args: [file, put, "${repository}", "src/main/java/${java_package_path}/.gitkeep", "message=Seed java source path for ${service_name}", "content=seed"]
 
   - provider: github
-    args: [api, PUT, "/repos/${repository}/contents/src/main/resources/.gitkeep", "message=Seed resources path for ${service_name}", "content=c2VlZA=="]
+    args: [file, put, "${repository}", "src/main/resources/.gitkeep", "message=Seed resources path for ${service_name}", "content=seed"]
 
   - provider: github
-    args: [api, PUT, "/repos/${repository}/contents/.github/workflows/.gitkeep", "message=Seed workflows path for ${service_name}", "content=c2VlZA=="]
+    args: [file, put, "${repository}", ".github/workflows/.gitkeep", "message=Seed workflows path for ${service_name}", "content=seed"]
 
   - binary: git
     args: [clone, "https://github.com/${repository}.git", "${workdir}"]
