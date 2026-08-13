@@ -64,13 +64,12 @@ runtime bootstrap
 ls -R "${ENGINEERING_RUNTIME_HOME:-$HOME/.engineering-runtime}"
 ```
 
-### User-owned (seeded once, never overwritten)
+### User-owned source (this repo)
 
-`capabilities/` under Runtime Home is **user-owned**: seeded from the
-binary's embedded examples only when missing. Bootstrap never overwrites
-edits on upgrade. Existing capabilities and the refreshed `specs/` /
-`commands/` in Runtime Home are what agents and humans should read when
-creating **new** capabilities.
+Author capabilities **here**, never silently into Runtime Home. A Home
+`capabilities/` directory is a provenance-labelled cache, not the library.
+Push a validated file with `runtime github file put` (UTF-8 `content=`;
+never `github api PUT …/contents/…`, `git`, `gh`, or `curl` for this loop).
 
 ### Point this repo (or any checkout) at the runtime
 
@@ -109,14 +108,19 @@ Write **new** capabilities into that directory (grouped by provider, e.g.
    the provider choose transport (REST / GraphQL / CLI).
 4. **Never hardcode auth, org, project, namespace, or other Runtime Context
    values** — declare them as `inputs`.
-5. **Validate before commit**:
+5. **Validate before push** — that proves grammar and this binary's
+   operations, not source admission or permission to run:
    ```bash
    runtime capability validate files/my-new-capability
-   # or against a path:
-   runtime capability validate ./files/my-new-capability.md
+   runtime github file put owner/repo capabilities/files/my-new-capability.md \
+     message="Add my-new-capability" content="$(cat ./files/my-new-capability.md)"
    ```
 6. **Update the provider folder's `README.md` index** when adding or renaming
    a capability.
+
+If Runtime Home `RUNTIME-AGENT.md`, `manifest.json`, or `specs/` are missing
+or do not match `runtime version`, restore them from that binary and stop.
+Do not fetch `/metadata/*`.
 
 ## Architecture reminder
 

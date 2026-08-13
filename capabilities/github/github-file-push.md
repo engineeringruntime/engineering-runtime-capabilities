@@ -5,41 +5,17 @@ Creates a file in a GitHub repository and commits it in one step — the
 
 Use this when the file does **not** yet exist at that path. To change a file
 that is already there, use
-[`github-file-update.md`](./github-file-update.md) instead: GitHub requires
-the existing blob's `sha` to replace it, and refuses a create that supplies
-one.
+[`github-file-update.md`](./github-file-update.md) instead: omit `sha` to
+create-only; GitHub refuses to overwrite an existing path.
 
-## Why this uses `api`
-
-The GitHub Provider exposes no first-class file-writing operation today
-(`runtime github --help` is the authority). The repository Contents API
-covers it, so this capability reaches it through the `api` escape hatch.
-That is exactly what the escape hatch is for — and if this workflow becomes
-common, the right fix is to add a `file push` operation to the provider
-rather than to keep hand-writing the path here.
-
-## Content must be base64
-
-The Contents API takes file content base64-encoded, and the runtime has no
-encoding primitive — it is a deterministic executor, not a data-transformer.
-So the encoded content is a declared input:
-
-```bash
-base64 -i notes.txt          # macOS
-base64 -w0 notes.txt         # Linux
-```
-
-For short content you can encode inline:
-
-```bash
---input content_base64="$(printf 'hello from the runtime\n' | base64)"
-```
+The provider encodes content. Do not base64 it, and do not use
+`github api PUT /repos/…/contents/…`.
 
 ## Requirements
 
 - `RUNTIME_GITHUB_TOKEN` set and valid (`runtime auth status`)
 - the token needs `contents: write` on the target repository
-- the commit is made on the repository's **default branch**
+- the commit is made on the repository's **default branch** unless `branch=` is set
 
 ## Run it
 
@@ -50,7 +26,7 @@ runtime capability execute capabilities/github/github-file-push.md \
   --input repository=kishore-gutta/my-repo \
   --input path=notes.txt \
   --input message="Add notes via Engineering Runtime" \
-  --input content_base64="$(printf 'hello from the runtime\n' | base64)"
+  --input content="hello from the runtime"
 ```
 
 Every input is required. Optional inputs are deliberately avoided here: an
@@ -77,11 +53,11 @@ inputs:
   message:
     description: Commit message
     required: true
-  content_base64:
-    description: File content, base64-encoded
+  content:
+    description: File content as UTF-8 text. The provider encodes it.
     required: true
 
 workflow:
   - provider: github
-    args: [api, PUT, "/repos/${repository}/contents/${path}", "message=${message}", "content=${content_base64}"]
+    args: [file, put, "${repository}", "${path}", "message=${message}", "content=${content}"]
 ```

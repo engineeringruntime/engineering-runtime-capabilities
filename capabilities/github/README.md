@@ -65,8 +65,8 @@ not required** — the Command Engine forwards the validated token as
 | `github-request-list-repo-issues.md` | `api GET /repos/{owner}/{repo}/issues` | `owner`, `repo`, `state` |
 | `github-request-create-issue.md` | `api POST /repos/{owner}/{repo}/issues` | `owner`, `repo`, `title`, `body` |
 | `github-request-update-repo.md` | `api PATCH /repos/{owner}/{repo}` | `owner`, `repo`, `description` |
-| `github-file-push.md` | `api PUT /repos/{repo}/contents/{path}` | `repository`, `path`, `message`, `content_base64` |
-| `github-file-update.md` | `api GET` + `api PUT /repos/{repo}/contents/{path}` | `repository`, `path`, `message`, `content_base64`, `sha` |
+| `github-file-push.md` | `file put` (create-only) | `repository`, `path`, `message`, `content` |
+| `github-file-update.md` | `file put` (compare-and-set) | `repository`, `path`, `message`, `content`, `sha` |
 | `github-git-clone-commit-push.md` | `git clone/add/commit/push` (raw binary) + `files write` | `repository_url`, `workdir`, `path`, `content`, `message` |
 | `github-repo-view.md` | `repo view` | `repository` |
 | `github-issue-create-and-list.md` | `issue create`, `issue list` | `organization`, `title`, `body` |
