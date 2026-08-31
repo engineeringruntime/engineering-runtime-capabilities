@@ -57,6 +57,11 @@ not required** — the Command Engine forwards the validated token as
 | `github-repositories-create.md` | `repo create` | `name`, `private`, `description` |
 | `github-repositories.md` | `repo list`, `pr list` | `organization` |
 | `github-repo-health.md` | `repo summary`, `pr list`, `run list` | `repository` |
+| `github-branch-protection-audit.md` | `api GET` branch protection and rulesets | `repository`, `branch` |
+| `github-repo-standards-audit.md` | `repo summary`, `api GET` community profile/topics/languages | `repository` |
+| `github-review-queue.md` | `pr list` | `repository`, `stale_before` |
+| `github-secrets-inventory.md` | `api GET` secrets/variables/environments metadata | `repository` |
+| `github-security-posture.md` | `api GET` Dependabot/code/secret-scanning alerts | `repository` |
 | `github-repo-bootstrap.md` | `repo create` + `gh repo list` | `name`, `private`, `description`, `limit` |
 | `github-org-health-check.md` | `org list`, `repo list`, `team list`, `issue list` | `organization` |
 | `github-org-repos-and-open-prs.md` | `api GET /orgs/{org}/repos` + `gh pr list` | `organization` |
@@ -105,12 +110,9 @@ These files predate the Provider layer. They all validate and run, but the
 set now has visible redundancy:
 
 - **`github-repositories-list.md` and `github-repositories-list-for-org.md`
-  are identical.** They came from two registry commands
-  (`github.repositories.list` → `/user/repos`,
-  `github.repositories.list_for_org` → `/orgs/{org}/repos`) that the provider
-  collapsed into one operation: `repo list` uses the active Runtime Context's
-  org when there is one and falls back to your own repos otherwise. One of
-  the two can go.
+  overlap.** `repo list` with no organization lists the authenticated user's
+  repositories; `repo list <org>` lists that organization. Runtime supplies no
+  ambient GitHub organization, so the explicit-input version remains useful.
 - **`github-request-list-org-repos.md` duplicates `repo list <org>`** through
   the `api` escape hatch. Prefer the curated operation; the escape hatch is
   for endpoints no operation covers.

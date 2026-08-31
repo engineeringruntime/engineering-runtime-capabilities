@@ -27,7 +27,7 @@ than one combination — single-path (`notes-roundtrip.md`,
 `incident-log-lifecycle.md`), multi-path within one directory
 (`scaffold-service-docs.md`), and multi-directory
 (`directory-snapshot-report.md`). `delete` is intentionally not exercised
-by any of them — the seeded default policy denies it
+by any of them — the compiled default policy denies it
 (`providers.files.denied: [delete]`) — see
 `specs/files/capability-spec-files.md`.
 

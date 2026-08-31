@@ -23,8 +23,8 @@ executes — same inputs, same outcome, every time, under Bootstrap → Context
 
 | Path | Contents |
 |---|---|
-| `files/` | Auth-free capabilities against the `files` provider |
-| `github/` | Capabilities against the `github` provider (and occasional `binary: gh` escape hatches) |
+| `capabilities/files/` | Auth-free capabilities against the `files` provider |
+| `capabilities/github/` | Capabilities against the `github` provider (and occasional `binary: gh` escape hatches) |
 | `*/README.md` | Per-provider index, inputs, and run examples |
 
 Reusable, general-purpose capabilities belong **here**. One-off demos and
@@ -35,7 +35,7 @@ should only invoke `runtime` (never `gh`/cloud CLIs directly) use
 
 ## How the runtime finds specs, commands, and capabilities
 
-Capability authoring and execution depend on material the runtime seeds into
+Capability authoring and execution depend on release-owned material the runtime refreshes into
 the **Runtime Home** (defaults to `~/.engineering-runtime`, override with
 `ENGINEERING_RUNTIME_HOME`). Bootstrap runs automatically before other
 commands; invoke `runtime bootstrap` only when you need to inspect or force
@@ -60,7 +60,7 @@ they will be removed on the next upgrade.
 # After installing or upgrading the runtime binary
 runtime bootstrap
 
-# Inspect what was seeded / refreshed
+# Inspect what was refreshed
 ls -R "${ENGINEERING_RUNTIME_HOME:-$HOME/.engineering-runtime}"
 ```
 
@@ -73,26 +73,32 @@ never `github api PUT …/contents/…`, `git`, `gh`, or `curl` for this loop).
 
 ### Point this repo (or any checkout) at the runtime
 
-To author and run capabilities from a local checkout of *this* repo —
-instead of the seeded `~/.engineering-runtime/capabilities` — set
-`RUNTIME_CAPABILITIES_DIR` to that path. Bootstrap seeds into it when empty,
-and `runtime capability validate|execute <name>` resolves names against it:
+To author and run from a local checkout, use the exact file path. For named
+resolution, declare the checkout's `capabilities/` directory in the selected
+external config document under ordered `capabilities.sources`:
 
 ```bash
-# Use this checkout (or a team-shared clone) as the capabilities directory
-export RUNTIME_CAPABILITIES_DIR=~/work/capabilities   # e.g. a clone of this repo
-# or, from inside this repo:
-# export RUNTIME_CAPABILITIES_DIR="$(pwd)"
-
-runtime bootstrap
-runtime capability validate files/notes-roundtrip
-runtime capability execute files/notes-roundtrip \
+runtime capability validate capabilities/files/notes-roundtrip.md
+runtime capability execute capabilities/files/notes-roundtrip.md \
   --input path=./notes.txt --input message=hello
 ```
 
-Write **new** capabilities into that directory (grouped by provider, e.g.
-`files/`, `github/`). Address them by relative name
-(`files/my-new-capability`) or by filesystem path.
+An external config source has this shape (use an absolute reviewed-checkout
+path and select the config with `RUNTIME_CONFIG_FILE`):
+
+```yaml
+capabilities:
+  sources:
+    - name: public-reference@<resolved-commit>
+      dir: /absolute/path/to/engineering-runtime-capabilities/capabilities
+```
+
+`RUNTIME_CAPABILITIES_DIR` only relocates Runtime's implicit compatibility
+cache in 0.6.0. It does not make this repository authoritative.
+
+Write new capabilities under `capabilities/files/` or
+`capabilities/github/`. Address them by exact filesystem path, or by relative
+name after configuring the source.
 
 ## Creating a new capability
 
@@ -106,14 +112,14 @@ Write **new** capabilities into that directory (grouped by provider, e.g.
    (`runtime <provider> --help`), or `binary` must be in `allowed_binaries`.
 3. **Prefer provider operations over `binary:`** — name the operation; let
    the provider choose transport (REST / GraphQL / CLI).
-4. **Never hardcode auth, org, project, namespace, or other Runtime Context
-   values** — declare them as `inputs`.
+4. **Never hardcode auth, org, project, namespace, or other target values** —
+   declare them as `inputs`; Runtime owns no context document.
 5. **Validate before push** — that proves grammar and this binary's
    operations, not source admission or permission to run:
    ```bash
-   runtime capability validate files/my-new-capability
+   runtime capability validate capabilities/files/my-new-capability.md
    runtime github file put owner/repo capabilities/files/my-new-capability.md \
-     message="Add my-new-capability" content="$(cat ./files/my-new-capability.md)"
+     message="Add my-new-capability" content="$(cat ./capabilities/files/my-new-capability.md)"
    ```
 6. **Update the provider folder's `README.md` index** when adding or renaming
    a capability.
@@ -127,5 +133,5 @@ Do not fetch `/metadata/*`.
 > AI reasons. Capabilities describe intent. Runtime executes. Deterministically.
 
 This repo only owns the middle term. Specs and command cheatsheets come from
-the binary into Runtime Home on each version refresh; capabilities live here
-(or wherever `RUNTIME_CAPABILITIES_DIR` points) and stay under user control.
+the binary into Runtime Home on each version refresh; definitions live in this
+or another explicit source and stay under source-owner control.

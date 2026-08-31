@@ -40,7 +40,7 @@ workflow:
     args: [list, "${dir}"]
 ```
 
-`delete` is intentionally not exercised here — the seeded default policy's
+`delete` is intentionally not exercised here — the compiled default policy's
 `providers.files.denied: [delete]` rule denies it, so a workflow relying on
 it would fail under the out-of-the-box policy. See
 `specs/files/capability-spec-files.md` for the full operation table,
