@@ -31,7 +31,7 @@ Reusable, general-purpose capabilities belong **here**. One-off demos and
 sample projects belong in `../engineering-runtime-ci`. Runtime source,
 engines, and providers belong in `../engineering-runtime`. AI sessions that
 should only invoke `runtime` (never `gh`/cloud CLIs directly) use
-`../engineering-runtime-ai-agent`. Never bolt workflow logic into the binary.
+`../engineering-runtime-agent`. Never bolt workflow logic into the binary.
 
 ## How the runtime finds specs, commands, and capabilities
 
