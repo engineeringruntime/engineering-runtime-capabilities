@@ -7,7 +7,7 @@ with an embedded ` ```runtime ` block — that the `runtime` binary from
 `../engineering-runtime` executes **deterministically**.
 
 This repo does not execute anything itself. It has no `internal/`, no
-`main.go`. Every `runtime capability validate|execute …` invocation is
+`main.go`. Every `runtime capability authoring-context|list|validate|plan|execute …` invocation is
 performed by the installed runtime; this repo only authors and versions the
 capability files the runtime resolves and runs.
 
@@ -68,8 +68,8 @@ ls -R "${ENGINEERING_RUNTIME_HOME:-$HOME/.engineering-runtime}"
 
 Author capabilities **here**, never silently into Runtime Home. A Home
 `capabilities/` directory is a provenance-labelled cache, not the library.
-Push a validated file with `runtime github file put` (UTF-8 `content=`;
-never `github api PUT …/contents/…`, `git`, `gh`, or `curl` for this loop).
+Use `runtime files write|append` for governed authoring. Commit or publish only
+when the user explicitly requests it.
 
 ### Point this repo (or any checkout) at the runtime
 
@@ -79,6 +79,8 @@ external config document under ordered `capabilities.sources`:
 
 ```bash
 runtime capability validate capabilities/files/notes-roundtrip.md
+runtime capability plan capabilities/files/notes-roundtrip.md \
+  --input path=./notes.txt --input message=hello
 runtime capability execute capabilities/files/notes-roundtrip.md \
   --input path=./notes.txt --input message=hello
 ```
@@ -87,11 +89,17 @@ An external config source has this shape (use an absolute reviewed-checkout
 path and select the config with `RUNTIME_CONFIG_FILE`):
 
 ```yaml
+schema_version: 2
 capabilities:
+  authoring_source: maintained-corpus
   sources:
-    - name: public-reference@<resolved-commit>
+    - name: maintained-corpus
       dir: /absolute/path/to/engineering-runtime-capabilities/capabilities
 ```
+
+`authoring_source` must match exactly one source and does not grant writes.
+Policy must include the directory under `file_policy.write_roots`. Verify the
+complete result with `runtime --output json capability authoring-context`.
 
 `RUNTIME_CAPABILITIES_DIR` only relocates Runtime's implicit compatibility
 cache in 0.6.0. It does not make this repository authoritative.
@@ -102,26 +110,28 @@ name after configuring the source.
 
 ## Creating a new capability
 
-1. **Read the contracts from Runtime Home** (refreshed for the installed
-   binary — not a copy imagined from memory):
-   - `${ENGINEERING_RUNTIME_HOME:-$HOME/.engineering-runtime}/specs/capability-spec.md`
-   - the matching per-provider spec under `specs/<provider>/`
-   - the relevant cheatsheet under `commands/` when you need the CLI shape
-2. **Only reference what the installed runtime can execute** — a step's
+1. **Discover before reasoning** with `runtime --output json capability
+   authoring-context`. Continue only when it reports the installed contracts,
+   this exact selected worktree and `authoring_ready: true`.
+2. **Reuse before creating** with `runtime capability list`; ask for every
+   missing required input or target fact.
+3. **Only reference what the installed runtime can execute** — a step's
    `provider` + `args` must resolve to a real operation
    (`runtime <provider> --help`), or `binary` must be in `allowed_binaries`.
-3. **Prefer provider operations over `binary:`** — name the operation; let
+4. **Prefer provider operations over `binary:`** — name the operation; let
    the provider choose transport (REST / GraphQL / CLI).
-4. **Never hardcode auth, org, project, namespace, or other target values** —
+5. **Never hardcode auth, org, project, namespace, or other target values** —
    declare them as `inputs`; Runtime owns no context document.
-5. **Validate before push** — that proves grammar and this binary's
-   operations, not source admission or permission to run:
+6. **Write through Runtime, validate, then plan** — validation proves grammar
+   and operations; planning applies context and policy without executing:
    ```bash
+   runtime files write /absolute/path/to/.../my-new-capability.md '<reviewed Markdown>'
    runtime capability validate capabilities/files/my-new-capability.md
-   runtime github file put owner/repo capabilities/files/my-new-capability.md \
-     message="Add my-new-capability" content="$(cat ./capabilities/files/my-new-capability.md)"
+   runtime capability plan capabilities/files/my-new-capability.md --input key=value
    ```
-6. **Update the provider folder's `README.md` index** when adding or renaming
+7. **Show the diff, source and digest.** Publish only when explicitly requested;
+   execute only through a separate explicit request.
+8. **Update the provider folder's `README.md` index** when adding or renaming
    a capability.
 
 If Runtime Home `RUNTIME-AGENT.md`, `manifest.json`, or `specs/` are missing
