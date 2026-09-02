@@ -44,6 +44,43 @@ specific service" is not — the difference is entirely how `gcloud` accepts the
 target, not how specific the question is. When a `gcloud` command offers both
 forms, use the flag form.
 
+## And the rule above only governs reads
+
+A third pass corrected this again. Flag-versus-positional decides which **reads**
+run. **Every `gcloud` write is refused, whatever shape it takes** — the denial
+message says so directly: *"Read-only operations are allowed at this strength;
+changes are not."*
+
+| Command | Positional target? | Result |
+|---|---|---|
+| `run services list --region=X` | no | runs |
+| `artifacts versions list --package=X …` | no | runs |
+| `run services describe <svc> --region=X` | yes | denied |
+| `run deploy --image=X --region=Y` | **no** | **denied — it is a change** |
+| `run services update --region=X` | **no** | **denied — it is a change** |
+| `secrets create <name> --replication-policy=…` | yes | denied |
+| `artifacts repositories create <name> --location=X` | yes | denied |
+
+`run deploy` with no service name is still refused. So the full rule is:
+
+1. **A `gcloud` change is refused, always.** Runtime will not mutate GCP through
+   a tool whose target it resolves via a mutable mapping.
+2. **A `gcloud` read is allowed only when its target is a flag or absent.**
+
+## Why `docker push` is allowed and `gcloud run deploy` is not
+
+Both change infrastructure. `docker push` runs; `gcloud run deploy` does not.
+
+The difference is not severity, it is bindability. `docker push` names its
+target as a fully-qualified registry URI in the argument itself — Runtime can
+pin exactly where that image lands. `gcloud run deploy` names a service that
+`gcloud` resolves through project and region configuration Runtime cannot pin,
+so it cannot promise the change lands where policy approved.
+
+This is worth internalising before writing GCP capabilities: **the floor is not
+ranking operations by danger. It is refusing the ones whose destination it
+cannot guarantee.**
+
 This is why the Artifact Registry capabilities here reach package, version, tag
 and file level while Cloud Run stops at the revision list: `gcloud run` takes
 service and revision names positionally, and Artifact Registry takes them as
