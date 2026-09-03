@@ -36,6 +36,7 @@ control, not completing the feature.
 |---|---|---|
 | [`platform-service-bootstrap.md`](./platform-service-bootstrap.md) | Empty repository → scaffolded service → local image → pushed to Artifact Registry → pipeline dispatched | `rest` · `git` · `docker` |
 | [`java-service-scaffold-and-ship.md`](./java-service-scaffold-and-ship.md) | Scaffolds a Maven service into an existing repository through a local checkout, commits, pushes, dispatches its pipeline | `rest` · `file` · `git` · `cli` |
+| [`repository-delivery-readiness.md`](./repository-delivery-readiness.md) | Compares remote repository/PR/CI state with a local checkout and its declared delivery document | `graphql` · `cli` · `file` · `git` |
 
 ## Fixed in v0.9.1 — the `gh` CLI transport
 

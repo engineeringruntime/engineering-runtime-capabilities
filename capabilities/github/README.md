@@ -80,6 +80,11 @@ not required** — the Command Engine forwards the validated token as
 | `github-pr-open-and-inspect.md` | `pr create`, `pr view` | `title`, `body`, `number` |
 | `github-workflow-dispatch-and-list.md` | `workflow run`, `workflow list` | `workflow`, `ref` |
 | `github-actions-run-inspect.md` | `run list`, `run view` | `run_id` |
+| `github-actions-failed-runs.md` | `api GET` failed workflow runs | `repository`, `branch` |
+| `github-deployments-and-environments.md` | `api GET` environments and deployments | `repository` |
+| `github-release-readiness.md` | `repo summary`, release/tag APIs, `workflow list` | `repository` |
+| `github-pr-review-readiness.md` | `pr view`, review and requested-reviewer APIs | `repository`, `number` |
+| `github-repository-visibility.md` | `repo view`, `api GET` repository metadata | `repository` |
 | `github-graphql-contributors-query.md` | `graphql` (escape hatch) | `owner`, `name` |
 | `github-cli-repo-list.md` | `gh repo list` (raw binary) | `limit` |
 | `github-cli-pr-list.md` | `gh pr list` (raw binary) | — |
