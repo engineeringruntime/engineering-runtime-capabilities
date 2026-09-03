@@ -14,38 +14,48 @@ around them.
 | Wanted | Runtime | Why |
 |---|---|---|
 | Create a repository, write files, dispatch CI | **yes** | curated GitHub operations and REST |
-| `docker build` | yes | but the image has nowhere useful to go |
-| `docker push` to Artifact Registry | **no** | `docker` cannot reach `docker-credential-gcloud`; Runtime's bounded environment does not admit transitive helpers |
-| `gcloud run deploy` | **no** | every `gcloud` change is refused at `selector_bound` strength |
+| `docker build` | **yes** | pass an absolute context — each step gets a fresh bounded working directory, so `.` builds from an empty one |
+| `docker push` to Artifact Registry | **yes, since v0.9.1** | needs one `command_policy.admitted_helpers` entry naming the credential helper |
+| `gcloud run deploy` | **no** | every `gcloud` change is refused at `selector_bound` strength, and no policy document lifts it |
 
-So the pattern is: **Runtime bootstraps and dispatches; CI builds, pushes and
-deploys.** That is not a workaround. Runtime is doing the governed, auditable
-part — creating repositories, writing contracts, triggering pipelines — and
-asking CI to do the two things whose destination Runtime cannot pin.
+So the pattern is: **Runtime bootstraps, builds, pushes and dispatches; CI
+deploys.** One stage leaves, not three. That is not a workaround — Runtime does
+the governed, auditable part and asks CI for the single operation whose
+destination it cannot pin.
 
-A capability that found a way past either refusal would be defeating the
+The push moved back in on **v0.9.1**, which added `admitted_helpers`. The table
+above said "no" for two releases after it became "yes", which is why the release
+gate now checks the public surface for claims a release has just falsified.
+
+A capability that found a way past the remaining refusal would be defeating the
 control, not completing the feature.
 
-## Known transport defect on v0.8.0
+## Capabilities here
+
+| Capability | What it does | Transports |
+|---|---|---|
+| [`platform-service-bootstrap.md`](./platform-service-bootstrap.md) | Empty repository → scaffolded service → local image → pushed to Artifact Registry → pipeline dispatched | `rest` · `git` · `docker` |
+| [`java-service-scaffold-and-ship.md`](./java-service-scaffold-and-ship.md) | Scaffolds a Maven service into an existing repository through a local checkout, commits, pushes, dispatches its pipeline | `rest` · `file` · `git` · `cli` |
+
+## Fixed in v0.9.1 — the `gh` CLI transport
 
 The curated `workflow run`, `run list`, `pr list` and `workflow list` operations
-**do not work**. They route through the `gh` CLI, and `gh` is registered as
-context-unsupported because it resolves the repository from the working
-directory:
+**were refused on v0.8.0**. They route through the `gh` CLI, and the provider path
+built a Command Engine request with no pinned executable, so the engine refused
+every one of them:
 
 ```
 runtime github workflow run …  → gh reached the Command Engine with no pinned artifact
-runtime command run gh …       → gh is registered as context-unsupported …
-                                  Use the curated `runtime github ...` operations
 ```
 
-The refusal points at the curated operations, and the curated operations route
-through the refused binary. **Twelve shipped capabilities depend on that
-transport.** REST operations are unaffected.
+Sixteen published capabilities depended on that path and were dead for a release.
+Nothing reported it, because `go test`, a strict docs build and capability
+*validation* all stayed green — validation parses a file, it never runs one.
 
-Capabilities here therefore use `api` where a curated operation would read
-better. Those uses are marked, and should be reverted when the transport is
-fixed.
+**v0.9.1 fixed it**, and the CI conformance matrix now executes one real
+operation per transport on every release candidate so a whole transport cannot
+die silently again. Verified on **0.9.2**: `gh workflow run` returns a run URL and
+`gh run list` returns the queue.
 
 ## What is here
 

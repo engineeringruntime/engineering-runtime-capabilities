@@ -11,6 +11,29 @@ for the directory seeding, `file` for every piece of authored content, the
 Actions surface. The capability names none of those transports; each provider
 picks its own.
 
+
+## What it needs, and what changed in v0.9.1
+
+```yaml
+schema_version: 3
+allowed_binaries: [git, gh]
+file_policy:
+  read_roots:  ["/absolute/path/containing/your/workdir"]
+  write_roots: ["/absolute/path/containing/your/workdir"]
+```
+
+`${workdir}` must be **absolute**. Each step runs in its own bounded working
+directory, so a relative path resolves somewhere that does not outlive the step —
+the File Engine writes would land nowhere and `git -C` would not find the
+checkout.
+
+**Steps 16–18 did not work before Runtime v0.9.1.** They use the `gh` CLI
+transport, and the provider path built a Command Engine request with no pinned
+executable, so every `gh`-backed operation was refused. Sixteen published
+capabilities were affected, this one among them. Verified again on **0.9.2**: all
+18 steps execute, `gh workflow run` returns a run URL and `gh run list` returns
+the queue.
+
 ## The constraint this capability is built around
 
 `runtime files --help` publishes exactly five operations — `read`, `write`,
@@ -18,7 +41,7 @@ picks its own.
 missing parent:
 
 ```
-execution failed: write .../nested/x.txt: no such file or directory
+execution failed: nested: open directory nested: no such file or directory
 ```
 
 A Java service is nothing but nested directories (`src/main/java/com/example/…`),
@@ -46,18 +69,18 @@ policy denied files delete: "delete .../.gitkeep"
 the runtime will not be a general-purpose file remover. `git rm` is a
 different, narrower thing: it removes *tracked* files inside a working copy,
 where the content stays recoverable in history, and `command_policy.rules.git`
-denies only the irreversible git operations (`push --force`, `reset --hard`,
-`clean -fd`, `filter-branch`, `update-ref -d`). Deletion by `git rm` is
+denies only the irreversible git operations — `push --force`, `push -f`,
+`reset --hard`, `clean -fd`, `filter-branch`, `update-ref -d`. Deletion by `git rm` is
 permitted by that policy on purpose. This is a policy adaptation, not a policy
 bypass — if the intent were to forbid removing these files at all, the git
 rule is where that belongs.
 
-The seeds carry the base64 for the four bytes `seed` (`c2VlZA==`) — hardcoded
-deliberately. The runtime has no encoding primitive (it is a deterministic
-executor, not a data transformer), so the Contents API's base64 requirement
-has to be met by a literal. That is only tolerable because the payload is a
-throwaway placeholder; the *real* content is written as plain text by the
-File Engine after the clone, where no encoding is involved at all.
+The seeds carry the plain text `seed`. **The provider encodes content itself** —
+`runtime github file put` documents its argument as `content=<utf8-text>` and
+says *"The provider encodes content"* — so a capability never has to think about
+the Contents API's base64 requirement. An earlier version of this file claimed
+the base64 had to be hardcoded as a literal; that was true of an older provider
+and is not true of the one that ships.
 
 > The right long-term fix is a `files mkdir` operation on the provider, not
 > a cleverer capability. See "Gap" below.
@@ -71,10 +94,10 @@ a capability composes providers and binaries only.
 
 | Steps | Existing capability re-derived |
 |---|---|
-| 1–3 | [`github-file-push.md`](./github-file-push.md), three times |
-| 4, 13–15 | [`github-git-clone-commit-push.md`](./github-git-clone-commit-push.md) |
+| 1–3 | [`github-file-push.md`](../github/github-file-push.md), three times |
+| 4, 13–15 | [`github-git-clone-commit-push.md`](../github/github-git-clone-commit-push.md) |
 | 5–10, 12 | [`../files/scaffold-service-docs.md`](../files/scaffold-service-docs.md) — multi-write, then `list` to confirm |
-| 16–17 | [`github-workflow-dispatch-and-list.md`](./github-workflow-dispatch-and-list.md) |
+| 16–17 | [`github-workflow-dispatch-and-list.md`](../github/github-workflow-dispatch-and-list.md) |
 
 Two of those could not have been called even if the grammar allowed it:
 `github-git-clone-commit-push.md` takes a single `path`/`content` pair and
@@ -158,7 +181,7 @@ runtime audit tail
 
 ## Gap worth closing
 
-This capability would be six steps shorter, and would not need the base64
+This capability would be six steps shorter
 literal at all, if the `files` provider published a `mkdir` operation (or
 `write --parents`). Per the capability spec's rule 5, working around a missing
 primitive is a signal to add the operation, not to keep being clever. Raised
