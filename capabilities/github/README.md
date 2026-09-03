@@ -75,6 +75,7 @@ not required** — the Command Engine forwards the validated token as
 | `github-git-clone-commit-push.md` | `git clone/add/commit/push` (raw binary) + `files write` | `repository_url`, `workdir`, `path`, `content`, `message` |
 | `github-repo-view.md` | `repo view` | `repository` |
 | `repo-topics-review.md` | `api GET /repos/{owner}/{repo}/topics` | `repository` |
+| `repo-open-milestones.md` | `api GET /repos/{owner}/{repo}/milestones?state=open` | `repository` |
 | `github-issue-create-and-list.md` | `issue create`, `issue list` | `organization`, `title`, `body` |
 | `github-pr-open-and-inspect.md` | `pr create`, `pr view` | `title`, `body`, `number` |
 | `github-workflow-dispatch-and-list.md` | `workflow run`, `workflow list` | `workflow`, `ref` |
