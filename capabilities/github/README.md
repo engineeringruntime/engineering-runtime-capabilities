@@ -150,6 +150,11 @@ Prefer a curated operation when it covers the same outcome.
 - [`github-cli-pr-list.md`](./github-cli-pr-list.md)
 - [`github-cli-repo-list.md`](./github-cli-repo-list.md)
 
+`github-cli-repo-list.md` is the first admitted raw `gh` semantic mode. The
+other raw-CLI examples remain design/reference material and are denied through
+`runtime command run gh` until their auth/context/cwd modes are registered;
+their equivalent curated Provider operations remain supported.
+
 ## Run and verify
 
 Use an exact path or a name resolved from the configured capability source:

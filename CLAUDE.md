@@ -119,7 +119,9 @@ filesystem path, or by relative name after configuring the source.
    missing required input or target fact.
 3. **Only reference what the installed runtime can execute** — a step's
    `provider` + `args` must resolve to a real operation
-   (`runtime <provider> --help`), or `binary` must be in `allowed_binaries`.
+   (`runtime <provider> --help`), or `binary` must be in `allowed_binaries` and
+   its exact semantic mode must be supported by the installed Runtime. An
+   allow-listed binary alone is not execution authority.
 4. **Prefer provider operations over `binary:`** — name the operation; let
    the provider choose transport (REST / GraphQL / CLI).
 5. **Never hardcode auth, org, project, namespace, or other target values** —

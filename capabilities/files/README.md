@@ -23,6 +23,9 @@ are the recommended first capabilities to run in a fresh Runtime Home.
 | `directory-snapshot-report.md` | `list` ×2, `write` | `current_dir`, `reference_dir`, `report_path` |
 | `workspace-inputs-inspect.md` | `list`, `read` ×2 | `workspace_dir`, `readme_path`, `config_path` |
 | `change-journal-entry.md` | `append`, `read`, `list` | `journal_path`, `entry`, `journal_dir` |
+| `estate-config-update.md` | YAML replace, Terraform attribute set, CODEOWNERS owner add | `root`, branch values, `owner` |
+| `yaml-image-rollout.md` | keyed-sequence YAML scalar set | `root`, `container`, `image` |
+| `terraform-provider-upgrade.md` | selected provider and Terraform version update | `root`, provider source/version constraints |
 
 Every non-destructive `files` operation has a checked-in example, in more
 than one combination — single-path (`notes-roundtrip.md`,
@@ -32,6 +35,14 @@ than one combination — single-path (`notes-roundtrip.md`,
 by any of them — the compiled default policy denies it
 (`providers.files.denied: [delete]`) — see
 `specs/files/capability-spec-files.md`.
+
+Structured edit capabilities accept `runtime capability execute <path>
+--dry-run`. Runtime checks every step's preview contract before step one,
+converts each registered File Engine mutation to a preview, and refuses a
+workflow containing a non-previewable mutation. Without `--dry-run`, edits are
+local and immediate after whole-batch preflight; no plan digest or manifest is
+required. Default text output includes the file table, counts and diffs, while
+`--output json` returns typed per-file outcomes and digests.
 
 ## Running them
 

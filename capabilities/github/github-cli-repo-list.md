@@ -4,7 +4,11 @@ A raw Command Engine invocation (`binary: gh`) — validated against
 `allowed_binaries`/`command_policy` rather than against the GitHub
 Provider's operation surface. The provider exposes a `repo list`
 operation that does the same job and lets the provider choose the
-transport; this file exists to demonstrate the escape hatch. Requires `gh` to be installed and authenticated.
+transport; this file exists to demonstrate the one raw `gh` semantic mode
+Runtime currently admits. Runtime reuses either the existing `gh` session or a
+configured GitHub-issued token, keeps account-wide execution in a private
+working directory, and preserves native stdout. Other raw `gh` modes remain
+default-denied unless separately registered.
 
 Run with:
 
@@ -23,5 +27,9 @@ inputs:
 
 workflow:
   - binary: gh
-    args: [repo, list, --limit, "${limit}"]
+    args: [repo, list, --limit, "${limit}", --json, "nameWithOwner,description,visibility,url,updatedAt"]
 ```
+
+Default `text` output remains human-readable. Use Runtime's global
+`--output json` for a stable envelope whose `data` field is the native JSON
+array, or `--output raw` for the payload alone.
