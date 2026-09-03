@@ -12,17 +12,23 @@ image, pushes it to Artifact Registry and deploys to Cloud Run.
 | Write service, Dockerfile, pipeline | **Runtime** | `file put` — writes straight through the API, no clone |
 | Trigger the pipeline | **Runtime** | `api POST …/dispatches` — see the transport note |
 | Build the image | **CI** | see below |
-| Push to Artifact Registry | **CI** | Runtime cannot: `docker` cannot reach its credential helper |
+| Push to Artifact Registry | **CI** | Runtime can, with `admitted_helpers` — this pipeline keeps it in CI; see below |
 | Deploy to Cloud Run | **CI** | Runtime cannot: every `gcloud` change is refused |
 | Report the run | **Runtime** | `api GET …/actions/runs` |
 
 Two stages are not in Runtime because Runtime refuses them, and both refusals are
 deliberate:
 
-- **`docker push`** fails inside Runtime with `exec: "docker-credential-gcloud":
-  executable file not found in $PATH`, while the identical push succeeds outside
-  it. Runtime pins `docker` and runs it in a bounded environment that does not
-  admit docker's transitive credential helper.
+- **`docker push`** used to fail inside Runtime with `exec:
+  "docker-credential-gcloud": executable file not found in $PATH`, because
+  Runtime pins `docker` and runs it in a bounded environment that did not admit
+  docker's transitive credential helper. **Runtime 0.9.1 added
+  `command_policy.admitted_helpers`**, which admits named helper executables by
+  absolute path, scoped to one parent binary — verified: with the helper admitted
+  the same command authenticates and reaches the registry. This pipeline still
+  pushes from CI, because the image is built there and moving bytes twice buys
+  nothing; the constraint is now a choice rather than a limit. See
+  [`gcp/gcp-image-build-and-push`](../gcp/gcp-image-build-and-push.md).
 - **`gcloud run deploy`** is refused by the compiled safety profile at
   `selector_bound` strength: *"Read-only operations are allowed at this strength;
   changes are not."* Every `gcloud` write is refused, in a capability and through

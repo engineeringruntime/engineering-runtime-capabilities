@@ -24,30 +24,44 @@ That is why this capability stops at the push. Deploying the image is
 
 - **Docker must be running.** The build executes on whatever machine runs the
   capability, so reproducibility comes from your `Dockerfile`, not from Runtime.
-- **The push step does not work against a registry that uses a credential
-  helper binary — including Artifact Registry with the standard setup.**
-  Verified: the identical `docker push` **succeeds outside Runtime and fails
-  inside it** with
+- **Pushing to a registry that uses a credential helper needs one policy entry.**
+  Artifact Registry with the standard setup is exactly that case: `credHelpers`
+  in `~/.docker/config.json` points at `docker-credential-gcloud`, and Runtime
+  executes commands in a bounded environment, so the helper is not on `PATH`
+  unless you admit it. Without it the push fails with
 
   ```
   error getting credentials - err: exec: "docker-credential-gcloud":
   executable file not found in $PATH
   ```
 
-  `docker-credential-gcloud` is present at `/opt/homebrew/bin/` and on the
-  caller's `PATH`, but Runtime executes commands in a **bounded environment**
-  that does not include it. Runtime pins the `docker` executable; it does not
-  admit docker's transitive helper. Configuring static token auth with
-  `docker login` does not help either, because `credHelpers` in
-  `~/.docker/config.json` takes precedence over `auths` for that registry.
+  Since **Runtime 0.9.1**, `command_policy.admitted_helpers` closes that gap:
 
-  **So step 2 currently fails for Artifact Registry.** Step 1 works — the build
-  is real and verified. Until the execution boundary admits credential helpers,
-  push the image outside Runtime, or use a registry whose credentials live
-  statically in `~/.docker/config.json` with no helper.
+  ```yaml
+  schema_version: 3
 
-  This is recorded rather than worked around: the boundary is deliberate, and
-  the fix belongs in the Runtime, not in a capability that finds a way past it.
+  allowed_binaries:
+    - docker
+
+  command_policy:
+    admitted_helpers:
+      docker:
+        - /opt/homebrew/bin/docker-credential-gcloud
+  ```
+
+  Verified on 0.9.2 — the same command against Artifact Registry, with and
+  without that block:
+
+  | Policy | Result |
+  |---|---|
+  | no `admitted_helpers` | `exec: "docker-credential-gcloud": executable file not found in $PATH` |
+  | with it | authentication succeeds; the command reaches the registry |
+
+  The admission is deliberately narrow: absolute paths only, scoped to the one
+  parent binary, exposing only the named files rather than the directory they
+  sit in, and empty by default. Runtime still pins `docker` itself — this admits
+  its transitive helper and nothing else. Use the path your own machine has;
+  `docker-credential-gcloud` sits elsewhere on Linux.
 - **The target repository must exist.** Creating one is a `gcloud` write and is
   refused; use `gcp-artifact-registry-footprint` to confirm it is there first.
 
