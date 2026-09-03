@@ -21,6 +21,8 @@ are the recommended first capabilities to run in a fresh Runtime Home.
 | `scaffold-service-docs.md` | `write` ×3, `list` | `dir`, `readme_content`, `changelog_content`, `notes_content` |
 | `incident-log-lifecycle.md` | `write`, `append`, `read` | `path`, `opening`, `update` |
 | `directory-snapshot-report.md` | `list` ×2, `write` | `current_dir`, `reference_dir`, `report_path` |
+| `workspace-inputs-inspect.md` | `list`, `read` ×2 | `workspace_dir`, `readme_path`, `config_path` |
+| `change-journal-entry.md` | `append`, `read`, `list` | `journal_path`, `entry`, `journal_dir` |
 
 Every non-destructive `files` operation has a checked-in example, in more
 than one combination — single-path (`notes-roundtrip.md`,

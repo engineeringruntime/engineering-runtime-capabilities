@@ -25,6 +25,7 @@ executes — same inputs, same outcome, every time, under Bootstrap → Context
 |---|---|
 | `capabilities/files/` | Auth-free capabilities against the `files` provider |
 | `capabilities/github/` | Capabilities against the `github` provider (and occasional `binary: gh` escape hatches) |
+| `capabilities/command/` | Reusable local checks through allowed Command Engine binaries |
 | `*/README.md` | Per-provider index, inputs, and run examples |
 
 Reusable, general-purpose capabilities belong **here**. One-off demos and
@@ -68,8 +69,9 @@ ls -R "${ENGINEERING_RUNTIME_HOME:-$HOME/.engineering-runtime}"
 
 Author capabilities **here**, never silently into Runtime Home. A Home
 `capabilities/` directory is a provenance-labelled cache, not the library.
-Use `runtime files write|append` for governed authoring. Commit or publish only
-when the user explicitly requests it.
+Use your own file-editing tools for authoring; the File Engine is for a Runtime
+workflow acting for an operator, not for an author editing source. Commit or
+publish only when the user explicitly requests it.
 
 ### Point this repo (or any checkout) at the runtime
 
@@ -97,16 +99,16 @@ capabilities:
       dir: /absolute/path/to/engineering-runtime-capabilities/capabilities
 ```
 
-`authoring_source` must match exactly one source and does not grant writes.
-Policy must include the directory under `file_policy.write_roots`. Verify the
-complete result with `runtime --output json capability authoring-context`.
+`authoring_source` must match exactly one source. Alternatively, in Runtime
+0.9.2+, `RUNTIME_CAPABILITIES_DIR` names one ordinary authoritative source when
+no explicit authoring source wins. Verify the complete result with
+`runtime --output json capability authoring-context` and use the absolute
+`selected_source.dir`; do not reconstruct it from `~` or an environment value.
 
-`RUNTIME_CAPABILITIES_DIR` only relocates Runtime's implicit compatibility
-cache in 0.6.0. It does not make this repository authoritative.
-
-Write new capabilities under `capabilities/files/` or
-`capabilities/github/`. Address them by exact filesystem path, or by relative
-name after configuring the source.
+Write provider-specific capabilities under `capabilities/files/` or
+`capabilities/github/`, local CLI workflows under `capabilities/command/`, and
+cross-engine outcomes under `capabilities/platform/`. Address them by exact
+filesystem path, or by relative name after configuring the source.
 
 ## Creating a new capability
 
@@ -122,10 +124,9 @@ name after configuring the source.
    the provider choose transport (REST / GraphQL / CLI).
 5. **Never hardcode auth, org, project, namespace, or other target values** —
    declare them as `inputs`; Runtime owns no context document.
-6. **Write through Runtime, validate, then plan** — validation proves grammar
-   and operations; planning applies context and policy without executing:
+6. **Write with your own file tools, validate, then plan** — validation proves
+   grammar and operations; planning applies context and policy without executing:
    ```bash
-   runtime files write /absolute/path/to/.../my-new-capability.md '<reviewed Markdown>'
    runtime capability validate capabilities/files/my-new-capability.md
    runtime capability plan capabilities/files/my-new-capability.md --input key=value
    ```
