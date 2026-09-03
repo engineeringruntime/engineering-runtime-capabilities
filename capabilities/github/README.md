@@ -1,153 +1,177 @@
-# GitHub Capabilities
+# GitHub capabilities
 
-Every capability in this folder is a Markdown file with an embedded
-` ```runtime ` workflow block, authored against the specs that ship with
-the runtime binary (sibling repo `engineering-runtime/`, or
-`runtime-home/specs/` after `runtime bootstrap`):
+This directory contains reusable GitHub workflows executed by Engineering
+Runtime. Each Markdown file has one fenced `runtime` block; Runtime executes
+that block and treats the surrounding prose as guidance only.
 
-- [`specs/capability-spec.md`](../../../engineering-runtime/specs/capability-spec.md) — the generic grammar and rules
-- [`specs/github/capability-spec-github.md`](../../../engineering-runtime/specs/github/capability-spec-github.md) — the GitHub Provider's operations
+## Runtime contract
 
-The runtime never executes the Markdown around the block — only the fenced
-block itself; everything else exists for humans and AI to read.
+Author against the contracts installed by the Runtime version you will use:
 
-## What a step looks like
+- [`specs/capability-spec.md`](../../../engineering-runtime/specs/capability-spec.md)
+- [`specs/github/capability-spec-github.md`](../../../engineering-runtime/specs/github/capability-spec-github.md)
 
-A step names an **operation**, never a transport:
+Runtime 0.9.3 exposes 20 GitHub Provider operations across REST, GraphQL, and
+the pinned `gh` CLI transport. Every operation has at least one example in this
+directory. Confirm the installed surface instead of copying this count:
+
+```bash
+runtime github --help
+runtime --output json capability authoring-context
+```
+
+A capability names an operation, never its transport:
 
 ```yaml
 workflow:
   - provider: github
-    args: [repo, list, "${organization}"]
-
-  - binary: gh                    # escape hatch, for what the provider doesn't expose
-    args: [release, upload, "v1.0.0", "./dist/runtime"]
+    args: [repo, summary, "${repository}"]
 ```
 
-Whether `repo list` reaches GitHub over REST, GraphQL, or the `gh` CLI is
-the **GitHub Provider's** decision, not the capability's. That is what lets
-an operation change transport in a later runtime version without breaking
-any file here. See
-[`docs/04-design-decisions/adr-005-provider-layer.md`](../../../engineering-runtime/docs/04-design-decisions/adr-005-provider-layer.md).
-
-Run `runtime github --help` for the live operation surface, including the
-transport chosen for each operation.
+Prefer `provider: github`. Use `binary: gh` only to demonstrate or reach a
+command the provider does not expose. Raw `gh` is context-unsupported for
+general Command Engine execution because it can infer both repository and host;
+the curated GitHub Provider pins it when it selects the CLI transport.
 
 ## Requirements
 
-All capabilities here authenticate as the `github` Auth Engine provider —
-`RUNTIME_GITHUB_TOKEN` must be set and valid (`runtime auth status`).
+- Set `RUNTIME_GITHUB_TOKEN`; verify it with `runtime auth status`.
+- Grant only the GitHub permissions required by the capability being run.
+- Install `gh` for provider operations backed by the CLI. Runtime passes the
+  validated token as `GH_TOKEN`; `gh auth login` is not required.
+- Supply every required repository, organization, branch, run, or PR input.
+  Runtime owns no GitHub context document and never invents a target.
+- Plan before execution. Validation checks grammar and operation names; it does
+  not authenticate, contact GitHub, or prove the workflow will succeed.
 
-Capabilities with a `binary: gh` step additionally need `gh` installed and
-listed in `allowed_binaries` (`policy-config.yaml`). **`gh auth login` is
-not required** — the Command Engine forwards the validated token as
-`GH_TOKEN`.
+## Catalog — 76 capabilities
 
-## Index
+### Identity and organization discovery
 
-| Capability | Operations used | Inputs |
-|---|---|---|
-| `github-user-get.md` | `user get` | — |
-| `github-organizations-list.md` | `org list` | — |
-| `github-notifications-list.md` | `notification list` | — |
-| `github-teams-list.md` | `team list` | `organization` |
-| `github-issues-list-for-org.md` | `issue list` | `organization` |
-| `github-repositories-list.md` | `repo list` | — |
-| `github-repositories-list-for-org.md` | `repo list` | `organization` |
-| `github-repositories-create.md` | `repo create` | `name`, `private`, `description` |
-| `github-repositories.md` | `repo list`, `pr list` | `organization` |
-| `github-repo-health.md` | `repo summary`, `pr list`, `run list` | `repository` |
-| `github-branch-protection-audit.md` | `api GET` branch protection and rulesets | `repository`, `branch` |
-| `github-repo-standards-audit.md` | `repo summary`, `api GET` community profile/topics/languages | `repository` |
-| `github-review-queue.md` | `pr list` | `repository`, `stale_before` |
-| `github-secrets-inventory.md` | `api GET` secrets/variables/environments metadata | `repository` |
-| `github-security-posture.md` | `api GET` Dependabot/code/secret-scanning alerts | `repository` |
-| `github-repo-bootstrap.md` | `repo create` + `gh repo list` | `name`, `private`, `description`, `limit` |
-| `github-org-health-check.md` | `org list`, `repo list`, `team list`, `issue list` | `organization` |
-| `github-org-repos-and-open-prs.md` | `api GET /orgs/{org}/repos` + `gh pr list` | `organization` |
-| `github-daily-digest.md` | `notification list`, `issue list` + `gh pr list` | — |
-| `github-request-list-org-repos.md` | `api GET /orgs/{org}/repos` | `organization` |
-| `github-request-list-repo-issues.md` | `api GET /repos/{owner}/{repo}/issues` | `owner`, `repo`, `state` |
-| `github-request-create-issue.md` | `api POST /repos/{owner}/{repo}/issues` | `owner`, `repo`, `title`, `body` |
-| `github-request-update-repo.md` | `api PATCH /repos/{owner}/{repo}` | `owner`, `repo`, `description` |
-| `github-file-push.md` | `file put` (create-only) | `repository`, `path`, `message`, `content` |
-| `github-file-update.md` | `file put` (compare-and-set) | `repository`, `path`, `message`, `content`, `sha` |
-| `github-git-clone-commit-push.md` | `git clone/add/commit/push` (raw binary) + `files write` | `repository_url`, `workdir`, `path`, `content`, `message` |
-| `github-repo-view.md` | `repo view` | `repository` |
-| `repo-topics-review.md` | `api GET /repos/{owner}/{repo}/topics` | `repository` |
-| `repo-open-milestones.md` | `api GET /repos/{owner}/{repo}/milestones?state=open` | `repository` |
-| `github-issue-create-and-list.md` | `issue create`, `issue list` | `organization`, `title`, `body` |
-| `github-pr-open-and-inspect.md` | `pr create`, `pr view` | `title`, `body`, `number` |
-| `github-workflow-dispatch-and-list.md` | `workflow run`, `workflow list` | `workflow`, `ref` |
-| `github-actions-run-inspect.md` | `run list`, `run view` | `run_id` |
-| `github-actions-failed-runs.md` | `api GET` failed workflow runs | `repository`, `branch` |
-| `github-deployments-and-environments.md` | `api GET` environments and deployments | `repository` |
-| `github-release-readiness.md` | `repo summary`, release/tag APIs, `workflow list` | `repository` |
-| `github-pr-review-readiness.md` | `pr view`, review and requested-reviewer APIs | `repository`, `number` |
-| `github-repository-visibility.md` | `repo view`, `api GET` repository metadata | `repository` |
-| `github-graphql-contributors-query.md` | `graphql` (escape hatch) | `owner`, `name` |
-| `github-cli-repo-list.md` | `gh repo list` (raw binary) | `limit` |
-| `github-cli-pr-list.md` | `gh pr list` (raw binary) | — |
-| `github-cli-issue-create.md` | `gh issue create` (raw binary) | `title`, `body` |
+- [`github-user-get.md`](./github-user-get.md)
+- [`github-organizations-list.md`](./github-organizations-list.md)
+- [`github-notifications-list.md`](./github-notifications-list.md)
+- [`github-teams-list.md`](./github-teams-list.md)
+- [`github-issues-list-for-org.md`](./github-issues-list-for-org.md)
+- [`github-repositories-list.md`](./github-repositories-list.md)
+- [`github-repositories-list-for-org.md`](./github-repositories-list-for-org.md)
+- [`github-repositories.md`](./github-repositories.md)
+- [`github-org-health-check.md`](./github-org-health-check.md)
+- [`github-org-repos-and-open-prs.md`](./github-org-repos-and-open-prs.md)
+- [`github-daily-digest.md`](./github-daily-digest.md)
 
-`github-repo-health.md` is the clearest illustration of the model: its three
-steps are served by **two different transports** (GraphQL, then the `gh`
-CLI twice) and the file names neither.
+### Repository inventory and governance
 
-Every operation in `specs/github/capability-spec-github.md`'s table now has
-at least one checked-in `provider: github` example somewhere in this
-folder — `github-repo-view.md`, `github-issue-create-and-list.md`,
-`github-pr-open-and-inspect.md`, `github-workflow-dispatch-and-list.md`,
-`github-actions-run-inspect.md` and `github-graphql-contributors-query.md`
-were added specifically to close the gap on `repo view`, `issue create`
-(as a curated operation, not just the `github-cli-issue-create.md` raw
-escape hatch), `pr view`, `pr create`, `workflow list`, `workflow run`,
-`run view`, and the raw `graphql` escape hatch respectively.
+- [`github-access-review.md`](./github-access-review.md)
+- [`github-branch-protection-audit.md`](./github-branch-protection-audit.md)
+- [`github-repo-branches-and-protection.md`](./github-repo-branches-and-protection.md)
+- [`github-repo-codeowners-errors.md`](./github-repo-codeowners-errors.md)
+- [`github-repo-collaborators-list.md`](./github-repo-collaborators-list.md)
+- [`github-repo-community-profile.md`](./github-repo-community-profile.md)
+- [`github-repo-contributors-and-languages.md`](./github-repo-contributors-and-languages.md)
+- [`github-repo-health.md`](./github-repo-health.md)
+- [`github-repo-labels-list.md`](./github-repo-labels-list.md)
+- [`github-repo-root-files.md`](./github-repo-root-files.md)
+- [`github-repo-rulesets-export.md`](./github-repo-rulesets-export.md)
+- [`github-repo-settings-get.md`](./github-repo-settings-get.md)
+- [`github-repo-standards-audit.md`](./github-repo-standards-audit.md)
+- [`github-repo-tags.md`](./github-repo-tags.md)
+- [`github-repo-view.md`](./github-repo-view.md)
+- [`github-repository-visibility.md`](./github-repository-visibility.md)
+- [`repo-open-milestones.md`](./repo-open-milestones.md)
+- [`repo-topics-review.md`](./repo-topics-review.md)
+- [`github-secrets-inventory.md`](./github-secrets-inventory.md)
+- [`github-security-posture.md`](./github-security-posture.md)
 
-Several of the `gh`-backed operations above (`pr create`, `workflow run`,
-`workflow list`, `run list`, `run view`) resolve their repository from the
-**working directory** `gh` runs in, the same way `github-cli-pr-list.md`
-already does — they are not given a `repository` input, and running them
-from the wrong directory fails at `gh`, not at the runtime. Each capability
-file says so explicitly where it applies.
+### Repository changes and onboarding
 
-## Known overlap worth cleaning up
+These workflows mutate GitHub or push Git commits. Review their inputs and plan
+output before separately authorizing execution.
 
-These files predate the Provider layer. They all validate and run, but the
-set now has visible redundancy:
+- [`github-repositories-create.md`](./github-repositories-create.md)
+- [`github-repo-archive.md`](./github-repo-archive.md)
+- [`github-repo-bootstrap.md`](./github-repo-bootstrap.md)
+- [`github-repo-default-branch-set.md`](./github-repo-default-branch-set.md)
+- [`github-repo-description-set.md`](./github-repo-description-set.md)
+- [`github-repo-features-enforce.md`](./github-repo-features-enforce.md)
+- [`github-repo-merge-policy-enforce.md`](./github-repo-merge-policy-enforce.md)
+- [`github-service-onboarding.md`](./github-service-onboarding.md)
+- [`github-file-push.md`](./github-file-push.md)
+- [`github-file-update.md`](./github-file-update.md)
+- [`github-git-clone-commit-push.md`](./github-git-clone-commit-push.md)
 
-- **`github-repositories-list.md` and `github-repositories-list-for-org.md`
-  overlap.** `repo list` with no organization lists the authenticated user's
-  repositories; `repo list <org>` lists that organization. Runtime supplies no
-  ambient GitHub organization, so the explicit-input version remains useful.
-- **`github-request-list-org-repos.md` duplicates `repo list <org>`** through
-  the `api` escape hatch. Prefer the curated operation; the escape hatch is
-  for endpoints no operation covers.
-- **The `github-cli-*.md` files pin a transport** by using `binary: gh`
-  directly. That cuts against the guidance above — `github-cli-pr-list.md`
-  and a `pr list` operation step reach the same place, except the curated
-  operation lets the provider decide. Useful as demonstrations of the raw
-  escape hatch; not a pattern to copy for real work.
+### Pull requests, issues, and review
 
-## Running them
+- [`github-ci-failure-triage.md`](./github-ci-failure-triage.md)
+- [`github-incident-what-changed.md`](./github-incident-what-changed.md)
+- [`github-issue-create-and-list.md`](./github-issue-create-and-list.md)
+- [`github-pr-changed-files.md`](./github-pr-changed-files.md)
+- [`github-pr-commits.md`](./github-pr-commits.md)
+- [`github-pr-labels-and-assignees.md`](./github-pr-labels-and-assignees.md)
+- [`github-pr-open-and-inspect.md`](./github-pr-open-and-inspect.md)
+- [`github-pr-review-readiness.md`](./github-pr-review-readiness.md)
+- [`github-pr-reviews.md`](./github-pr-reviews.md)
+- [`github-pr-status.md`](./github-pr-status.md)
+- [`github-review-queue.md`](./github-review-queue.md)
+
+### Actions and deployments
+
+- [`github-actions-failed-runs.md`](./github-actions-failed-runs.md)
+- [`github-actions-permissions.md`](./github-actions-permissions.md)
+- [`github-actions-run-artifacts.md`](./github-actions-run-artifacts.md)
+- [`github-actions-run-inspect.md`](./github-actions-run-inspect.md)
+- [`github-actions-run-rerun-failed.md`](./github-actions-run-rerun-failed.md)
+- [`github-actions-runners-and-cache.md`](./github-actions-runners-and-cache.md)
+- [`github-actions-workflow-toggle.md`](./github-actions-workflow-toggle.md)
+- [`github-actions-workflows-inventory.md`](./github-actions-workflows-inventory.md)
+- [`github-deployments-and-environments.md`](./github-deployments-and-environments.md)
+- [`github-workflow-dispatch-and-list.md`](./github-workflow-dispatch-and-list.md)
+
+### Releases
+
+- [`github-release-assets.md`](./github-release-assets.md)
+- [`github-release-cut.md`](./github-release-cut.md)
+- [`github-release-latest-and-history.md`](./github-release-latest-and-history.md)
+- [`github-release-notes-preview.md`](./github-release-notes-preview.md)
+- [`github-release-readiness.md`](./github-release-readiness.md)
+
+### REST, GraphQL, and raw-CLI reference examples
+
+These files deliberately demonstrate escape hatches or older equivalent paths.
+Prefer a curated operation when it covers the same outcome.
+
+- [`github-graphql-contributors-query.md`](./github-graphql-contributors-query.md)
+- [`github-request-create-issue.md`](./github-request-create-issue.md)
+- [`github-request-list-org-repos.md`](./github-request-list-org-repos.md)
+- [`github-request-list-repo-issues.md`](./github-request-list-repo-issues.md)
+- [`github-request-update-repo.md`](./github-request-update-repo.md)
+- [`github-cli-issue-create.md`](./github-cli-issue-create.md)
+- [`github-cli-pr-list.md`](./github-cli-pr-list.md)
+- [`github-cli-repo-list.md`](./github-cli-repo-list.md)
+
+## Run and verify
+
+Use an exact path or a name resolved from the configured capability source:
 
 ```bash
 runtime capability validate capabilities/github/github-repo-health.md
-runtime capability execute  capabilities/github/github-repo-health.md --input repository=cli/cli
-
-# machine-readable, every step
-runtime --output json capability execute capabilities/github/github-repo-health.md --input repository=cli/cli
+runtime capability plan capabilities/github/github-repo-health.md \
+  --input repository=cli/cli
+runtime --output json capability execute \
+  capabilities/github/github-repo-health.md \
+  --input repository=cli/cli
 ```
 
-Validation resolves every `provider` step against the provider's real
-operation surface, so a capability naming an operation this runtime version
-doesn't have fails before anything executes.
-
-Validate the whole folder at once:
+Validate the entire GitHub catalog:
 
 ```bash
-for f in capabilities/github/*.md; do
-  [ "$(basename "$f")" = README.md ] && continue
-  runtime capability validate "$f"
+for file in capabilities/github/*.md; do
+  [ "$(basename "$file")" = README.md ] && continue
+  runtime capability validate "$file"
 done
 ```
+
+Some CLI-backed operations can resolve a repository from the current working
+directory, but new capabilities should pass `--repo <owner>/<repo>` whenever
+the upstream `gh` command supports it. Explicit targets make plans and audit
+records portable and reviewable.
