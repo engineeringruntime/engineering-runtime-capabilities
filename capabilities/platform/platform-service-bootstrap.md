@@ -11,24 +11,41 @@ image, pushes it to Artifact Registry and deploys to Cloud Run.
 | Create the repository | **Runtime** | `repo create` — curated operation |
 | Write service, Dockerfile, pipeline | **Runtime** | `file put` — writes straight through the API, no clone |
 | Trigger the pipeline | **Runtime** | `api POST …/dispatches` — see the transport note |
-| Build the image | **CI** | see below |
-| Push to Artifact Registry | **CI** | Runtime can, with `admitted_helpers` — this pipeline keeps it in CI; see below |
-| Deploy to Cloud Run | **CI** | Runtime cannot: every `gcloud` change is refused |
+| Build the image | **Runtime**, and again in CI | both paths are shown — see below |
+| Push to Artifact Registry | **Runtime**, and again in CI | needs one `admitted_helpers` entry |
+| Deploy to Cloud Run | **CI** | Runtime cannot: every `gcloud` change is refused, and no policy lifts it |
 | Report the run | **Runtime** | `api GET …/actions/runs` |
 
 Two stages are not in Runtime because Runtime refuses them, and both refusals are
 deliberate:
 
-- **`docker push`** used to fail inside Runtime with `exec:
-  "docker-credential-gcloud": executable file not found in $PATH`, because
-  Runtime pins `docker` and runs it in a bounded environment that did not admit
-  docker's transitive credential helper. **Runtime 0.9.1 added
-  `command_policy.admitted_helpers`**, which admits named helper executables by
-  absolute path, scoped to one parent binary — verified: with the helper admitted
-  the same command authenticates and reaches the registry. This pipeline still
-  pushes from CI, because the image is built there and moving bytes twice buys
-  nothing; the constraint is now a choice rather than a limit. See
-  [`gcp/gcp-image-build-and-push`](../gcp/gcp-image-build-and-push.md).
+- **`docker push`** works from Runtime since **v0.9.1**, with one policy entry.
+  Runtime pins `docker` and runs it in a bounded environment, so `docker` cannot
+  launch its credential helper unless the helper is admitted:
+
+  ```yaml
+  schema_version: 3
+  allowed_binaries: [git, docker]
+  command_policy:
+    admitted_helpers:
+      docker:
+        - /opt/homebrew/bin/docker-credential-gcloud    # your path will differ
+  ```
+
+  Without it: `exec: "docker-credential-gcloud": executable file not found in
+  $PATH`. With it, the push reaches the registry. Verified on 0.9.2 against a
+  real Artifact Registry repository.
+
+  **This capability does both.** Runtime builds and pushes locally, *and*
+  dispatches the pipeline that builds and pushes in CI. That is deliberate: it
+  shows what governed local execution can now reach, next to the one stage it
+  still hands off. Drop whichever half your workflow does not need.
+
+  **Every local path must be absolute.** Each step runs in its own bounded
+  temporary directory, so `docker build .` builds from an empty directory and
+  reports success having built nothing. Pass `${workdir}` — the same trap applies
+  to `git clone` and to any file the build reads.
+
 - **`gcloud run deploy`** is refused by the compiled safety profile at
   `selector_bound` strength: *"Read-only operations are allowed at this strength;
   changes are not."* Every `gcloud` write is refused, in a capability and through
@@ -140,6 +157,15 @@ inputs:
     required: true
   gcp_project:
     description: GCP project id the pipeline deploys into
+    required: true
+  workdir:
+    description: >
+      ABSOLUTE path Runtime clones into and builds from. It must be absolute:
+      each step runs in its own bounded temporary directory, so a relative path
+      resolves somewhere that does not outlive the step.
+    required: true
+  tag:
+    description: Image tag for the local build, e.g. v1 or a commit sha
     required: true
 
 workflow:
@@ -296,6 +322,24 @@ workflow:
             runtime capability execute gcp/gcp-cloudrun-deployment-provenance \
               --input region=<region> --input location=<location> \
               --input repository=<registry repo> --input package=<image name>
+
+  # ---- The local path: Runtime clones, builds and pushes ------------------
+  # Every path below is absolute. `docker build .` would build from Runtime's
+  # bounded working directory, find nothing, and report success.
+
+  - binary: git
+    args: [clone, "https://github.com/${repository}.git", "${workdir}"]
+
+  - binary: docker
+    args: [build, -t, "${image_uri}:${tag}", "${workdir}"]
+
+  - binary: docker
+    args: [push, "${image_uri}:${tag}"]
+
+  # ---- The delegated path: CI builds and deploys ---------------------------
+  # The same pipeline still runs. Runtime dispatches it and reads the result;
+  # `gcloud run deploy` stays there because the compiled safety profile refuses
+  # every gcloud change, and no policy document can lift that.
 
   - provider: github
     args: [api, POST, "/repos/${repository}/actions/workflows/build-and-deploy.yml/dispatches", "ref=main"]

@@ -35,6 +35,11 @@ That is why this capability stops at the push. Deploying the image is
   executable file not found in $PATH
   ```
 
+  **Pass an absolute build context.** Each step runs in its own bounded working
+  directory, so `docker build .` builds from an empty directory and reports
+  success having built nothing. Use an absolute path — the same applies to any
+  file the build reads.
+
   Since **Runtime 0.9.1**, `command_policy.admitted_helpers` closes that gap:
 
   ```yaml

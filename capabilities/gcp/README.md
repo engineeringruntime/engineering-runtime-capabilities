@@ -22,6 +22,42 @@ Measured on Runtime v0.8.0:
 The line is **enumeration versus named target**, not read versus write.
 `describe` is read-only and still refused.
 
+## Every capability here is a read, and that is not an accident
+
+`list` and `describe`, without exception. A `gcloud` **change** is refused by the
+compiled safety profile:
+
+> *"command `gcloud` resolved its target as `selector_bound`: the selectors are
+> pinned, but the tool re-reads a mutable mapping to interpret them, so Runtime
+> cannot promise the change lands where policy approved. Read-only operations are
+> allowed at this strength; changes are not."*
+
+`gcloud` resolves `--project` and `--region` against its own active
+configuration — a mapping Runtime does not own and cannot freeze for the duration
+of a call. Runtime pins the executable; it cannot promise the change lands in the
+project policy approved rather than one a `gcloud config set` altered a moment
+earlier.
+
+Verified on 0.9.2, same resources:
+
+| Command | Verdict |
+|---|---|
+| `gcloud run services list` | allowed |
+| `gcloud run services delete` | refused |
+| `gcloud artifacts repositories list` | allowed |
+| `gcloud artifacts repositories create` | refused |
+
+Supplying every selector explicitly does not lift it — tested with `--project`,
+`--region`, `--platform` and `--quiet`. This is `compiled-safety-profile/v3`,
+which no policy document can disable.
+
+So a capability that needs a GCP change dispatches CI, as
+[`platform/platform-service-bootstrap`](../platform/platform-service-bootstrap.md)
+does. **`docker push` is different** — that is the Command Engine reaching a
+registry, not a `gcloud` change, and it works from Runtime since v0.9.1 with one
+`admitted_helpers` entry.
+
+
 ## The refinement that matters: flags pass, positionals do not
 
 A later pass found the boundary is narrower than "no targets at all". A target
