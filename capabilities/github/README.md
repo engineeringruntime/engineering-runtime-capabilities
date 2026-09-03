@@ -78,6 +78,7 @@ the curated GitHub Provider pins it when it selects the CLI transport.
 - [`github-repo-tags.md`](./github-repo-tags.md)
 - [`github-repo-view.md`](./github-repo-view.md)
 - [`github-repository-visibility.md`](./github-repository-visibility.md)
+- [`repo-forks-review.md`](./repo-forks-review.md)
 - [`repo-open-milestones.md`](./repo-open-milestones.md)
 - [`repo-topics-review.md`](./repo-topics-review.md)
 - [`github-secrets-inventory.md`](./github-secrets-inventory.md)
