@@ -38,7 +38,7 @@ should only invoke `runtime` (never `gh`/cloud CLIs directly) use
 
 Capability authoring and execution depend on release-owned material the runtime refreshes into
 the **Runtime Home** (defaults to `~/.engineering-runtime`, override with
-`ENGINEERING_RUNTIME_HOME`). Bootstrap runs automatically before other
+`RUNTIME_HOME`). Bootstrap runs automatically before other
 commands; invoke `runtime bootstrap` only when you need to inspect or force
 a refresh.
 
@@ -62,7 +62,7 @@ they will be removed on the next upgrade.
 runtime bootstrap
 
 # Inspect what was refreshed
-ls -R "${ENGINEERING_RUNTIME_HOME:-$HOME/.engineering-runtime}"
+ls -R "${RUNTIME_HOME:-$HOME/.engineering-runtime}"
 ```
 
 ### User-owned source (this repo)
