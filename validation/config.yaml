@@ -1,0 +1,16 @@
+# Validation-only fixture; not a credential or execution configuration.
+schema_version: 2
+authentication:
+  github:
+    enabled: false
+  gcp:
+    enabled: false
+  kubernetes:
+    enabled: false
+  openshift:
+    enabled: false
+command_providers: {}
+capabilities:
+  sources: []
+portal:
+  enabled: false
