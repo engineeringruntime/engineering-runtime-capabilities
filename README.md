@@ -12,13 +12,19 @@ The same file works for a person at a terminal, a CI job, or an AI assistant.
 
 | Directory | Contents |
 |---|---|
-| [`capabilities/github`](capabilities/github/README.md) | 50 read-only GitHub workflows: repositories, pull requests, Actions, governance and security, releases |
+| [`capabilities/github`](capabilities/github/README.md) | 50 read-only GitHub workflows (repositories, pull requests, Actions, governance and security, releases), plus 5 that create rulesets and Actions environments |
 | [`capabilities/platform`](capabilities/platform/README.md) | Workflows across several providers, including a Java service scaffold-and-ship showcase |
 | [`capabilities/files`](capabilities/files/README.md) | A credential-free File Engine round trip, for checking your setup |
 
-Everything under `capabilities/github` is read-only. The one capability that
-writes to GitHub, `platform/java-service-scaffold-and-ship`, says so at the
-top. Run it only against a disposable repository you own.
+Most capabilities here are read-only. The ones that write to GitHub say so at
+the top of the file and are listed separately in each index:
+
+- the [rulesets and environments](capabilities/github/README.md#rulesets-and-environments-writes)
+  capabilities, which change repository configuration;
+- `platform/java-service-scaffold-and-ship`, which commits, pushes and
+  dispatches a workflow. Run it only against a disposable repository you own.
+
+Run `engrt capability plan` before executing any of them.
 
 ## Requirements
 

@@ -1,7 +1,9 @@
 # GitHub capabilities
 
-Read-only GitHub workflows. Each file has one fenced `runtime` block, which
-Runtime executes; the prose around it is guidance only.
+GitHub workflows. Most are read-only; the [rulesets and environments](#rulesets-and-environments-writes)
+section is the exception and changes repository configuration. Each file has
+one fenced `runtime` block, which Runtime executes; the prose around it is
+guidance only.
 
 A capability names a GitHub Provider **operation**, never its transport. The
 provider decides whether a step goes over REST, GraphQL or the `gh` CLI:
@@ -26,8 +28,9 @@ workflow:
   or contact GitHub. Run `engrt capability plan` before `execute`.
 
 `github-release-notes-preview` calls a `POST` endpoint, but that endpoint only
-computes notes; it publishes nothing. Everything else in this directory uses
-`GET` reads or read-only curated operations.
+computes notes; it publishes nothing. Apart from the rulesets and environments
+section below, everything in this directory uses `GET` reads or read-only
+curated operations.
 
 ## Repositories
 
@@ -113,3 +116,24 @@ computes notes; it publishes nothing. Everything else in this directory uses
 | [`github-org-health-check`](github-org-health-check.md) | Organization health check |
 | [`github-daily-digest`](github-daily-digest.md) | Daily GitHub digest |
 | [`github-graphql-contributors-query`](github-graphql-contributors-query.md) | A custom GraphQL query the `graphql` escape hatch covers, that no curated operation does |
+
+## Rulesets and environments (writes)
+
+These change repository configuration. Each one declares `engrt_version:
+">=0.13.0"`, says what it writes at the top, and reads back what it wrote. Run
+`engrt capability plan` first and execute only against a repository you mean to
+change. None of them can delete anything: default policy denies `api DELETE`.
+
+| Capability | What it does | Writes |
+|---|---|---|
+| [`repo-ruleset-default`](repo-ruleset-default.md) | Adds the `engrt-ruleset-default` branch ruleset on the default branch: no deletion, no force push, changes through a pull request (0 approvals), no bypass actors | `POST` one ruleset; fails cleanly if one with that name exists |
+| [`repo-ruleset-default-reconcile`](repo-ruleset-default-reconcile.md) | Converges an existing `engrt-ruleset-default` to that baseline: observe, gated fix, verify per concern | Partial `PUT` only for concerns that drifted; no write when it already matches |
+| [`repo-environment-create`](repo-environment-create.md) | Creates or updates a GitHub Actions environment and its deployment branch policy | `PUT` (create-or-update) one environment |
+| [`repo-environment-branch-policy-add`](repo-environment-branch-policy-add.md) | Adds one allowed branch or tag pattern to an environment that uses custom branch policies | `POST` one pattern |
+| [`repo-environment-variable-set`](repo-environment-variable-set.md) | Creates one environment variable, then reads it back and checks the value | `POST` one variable; create-only |
+
+Typical order for a new deployment environment: `repo-environment-create` with
+`custom_branch_policies` on, then `repo-environment-branch-policy-add` for each
+pattern, then `repo-environment-variable-set` for each variable. Environment
+secrets and protection rules (wait timer, reviewers) are out of reach; each
+file explains why.
