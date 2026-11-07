@@ -19,7 +19,9 @@ capability works with those two files as published.
 | `engrt-capabilities-demo-legacy` | A plain repository standing in for an existing service. It receives a standards pull request, a scaffolded Java service and the default ruleset, then is retired with `repo-decommission` (archived). |
 
 Plus the team `engrt-capabilities-demo-reviewers`, used as the production
-environment's required reviewers.
+environment's required reviewers. On a public demo repository the script also
+turns on CodeQL default setup (free for public repositories), so
+`github-security-posture` has code-scanning results to read.
 
 ## Phases
 
@@ -57,6 +59,10 @@ mkdir -p ../demo-run && cd ../demo-run      # local phases write under ./engrt-d
 bash ../engineering-runtime-capabilities/demo/run-demo.sh <organization> check
 bash ../engineering-runtime-capabilities/demo/run-demo.sh <organization>          # all phases
 ```
+
+Every run is appended to Runtime's evidence journal, so a long-used Runtime
+home slows each run down. For a quick demo, use a fresh one:
+`export ENGRT_HOME="$HOME/.engrt-demo"`.
 
 Or one phase at a time: `run-demo.sh <organization> setup`, then `flow`,
 `read`, `legacy`, `local`. Phases after `setup` expect the repositories it

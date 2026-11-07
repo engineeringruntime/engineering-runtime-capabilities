@@ -234,6 +234,12 @@ phase_flow() {
   local A="$ORG/$REPO"
   cap success security-features github/repo-security-features-enable \
     --input organization="$ORG" --input repository="$REPO"
+  # CodeQL default setup is free on public repositories. Without it GitHub
+  # answers 404 on code-scanning alerts and github-security-posture stops.
+  if [ "$PRIVATE" != true ]; then
+    api PATCH "/repos/$A/code-scanning/default-setup" state=configured >/dev/null \
+      && log "code scanning default setup requested"
+  fi
   cap success labels github/repo-labels-standard-sync \
     --input organization="$ORG" --input repository="$REPO"
   cap success labels-rerun github/repo-labels-standard-sync \
@@ -387,9 +393,14 @@ phase_read() {
   cap success repo-topics github/repo-topics-review --input repository="$A"
   cap success repo-forks github/repo-forks-review --input repository="$A"
   cap success repo-milestones github/repo-open-milestones --input repository="$A"
-  cap success branches-and-protection github/github-repo-branches-and-protection --input repository="$A" --input branch=main
-  cap success branch-protection-audit github/github-branch-protection-audit --input repository="$A" --input branch=main
+  # The demo repository is protected by rulesets, not classic branch
+  # protection, so GitHub answers 404 on .../branches/main/protection and both
+  # capabilities stop there, as their files document. rulesets-export below
+  # reads the protection actually in force.
+  cap "fail:step 2" branches-and-protection github/github-repo-branches-and-protection --input repository="$A" --input branch=main
+  cap "fail:step 1" branch-protection-audit github/github-branch-protection-audit --input repository="$A" --input branch=main
   cap success rulesets-export github/github-repo-rulesets-export --input repository="$A" --input ruleset_id="$ruleset_id"
+  wait_idle "$REPO"   # the first CodeQL analysis must finish before code-scanning alerts exist
   cap success security-posture github/github-security-posture --input repository="$A"
   cap success secrets-inventory github/github-secrets-inventory --input repository="$A"
   cap success actions-permissions github/github-actions-permissions --input repository="$A"
