@@ -425,7 +425,7 @@ repository secret.
 | `engrt` itself: install, upgrade, CLI, auth, policy, audit, MCP | [engineering-runtime-releases issues](https://github.com/engineeringruntime/engineering-runtime-releases/issues/new/choose) |
 | Questions | [Discussions → Q&A](https://github.com/orgs/engineeringruntime/discussions/categories/q-a) |
 | Ideas not yet concrete | [Discussions → Ideas](https://github.com/orgs/engineeringruntime/discussions/categories/ideas) |
-| A security vulnerability | privately, by email to support@engineeringruntime.com; see [SECURITY.md](SECURITY.md) |
+| A security vulnerability | privately: [Report a vulnerability](https://github.com/engineeringruntime/engineering-runtime-capabilities/security/advisories/new), or email support@engineeringruntime.com; see [SECURITY.md](SECURITY.md) |
 
 To add or improve a capability, read [CONTRIBUTING.md](CONTRIBUTING.md).
 

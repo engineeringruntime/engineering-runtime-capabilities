@@ -11,4 +11,4 @@ contact_links:
     about: Discuss it in Discussions (Ideas) first; open an issue once it is concrete.
   - name: Security vulnerability
     url: https://github.com/engineeringruntime/engineering-runtime-capabilities/security/policy
-    about: Do not open a public issue. Email support@engineeringruntime.com as the security policy describes.
+    about: Do not open a public issue. Report it privately on the Security tab, or email support@engineeringruntime.com.

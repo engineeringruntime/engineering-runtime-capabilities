@@ -3,8 +3,15 @@
 ## Reporting a vulnerability
 
 **Do not open a public issue, discussion or pull request for a security
-problem.** Email **[support@engineeringruntime.com](mailto:support@engineeringruntime.com?subject=Security%3A%20)**
-with a subject that starts with `Security:`.
+problem.** Report it privately, in one of two ways:
+
+1. **On GitHub (preferred):** [**Report a vulnerability**](https://github.com/engineeringruntime/engineering-runtime-capabilities/security/advisories/new), also on
+   this repository's **Security** tab. Only you and the maintainers see the
+   report, and the fix, any advisory and your credit are handled in the same
+   private thread.
+2. **By email**, if you have no GitHub account:
+   **[support@engineeringruntime.com](mailto:support@engineeringruntime.com?subject=Security%3A%20)**,
+   with a subject that starts with `Security:`.
 
 Please include:
 
