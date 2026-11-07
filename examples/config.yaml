@@ -1,0 +1,65 @@
+# Example Engineering Runtime configuration for running this catalogue.
+#
+# Use it as-is or copy it and edit the copy:
+#
+#   export ENGRT_CONFIG_FILE="$PWD/examples/config.yaml"
+#   export ENGRT_POLICY_FILE="$PWD/examples/policy.yaml"
+#   export ENGRT_CAPABILITIES_DIR="$PWD/capabilities"
+#   engrt config validate
+#
+# This file holds no credential. GitHub authority comes from the environment
+# variable named by `token_env` (or from `engrt auth login github`). Never put
+# a token value in this file.
+#
+# Derived from `engrt config init config` (engrt 0.13.0), narrowed to the
+# providers these capabilities use. Every other provider is off.
+schema_version: 2
+
+runtime:
+  name: engineering-runtime
+  log_level: info
+
+# The optional Control Plane stays off: Runtime never contacts a portal and
+# everything runs locally.
+portal:
+  enabled: false
+
+authentication:
+  provider: github
+
+  github:
+    enabled: true
+    # GitHub Enterprise Server: https://<host>/api/v3
+    base_url: https://api.github.com
+    # Name of the variable that holds your token, not the token itself:
+    #   export ENGRT_GITHUB_TOKEN=<token>
+    # Read-only capabilities need `repo` and `read:org` (classic) or the
+    # matching fine-grained read permissions. Capabilities marked Mutating
+    # list the extra permissions they need at the top of their file.
+    token_env: ENGRT_GITHUB_TOKEN
+
+  # Not used by this catalogue.
+  gcp:
+    enabled: false
+    binary: gcloud
+    source: native
+  kubernetes:
+    enabled: false
+    source: kubeconfig
+    kubeconfig_path: ""
+  openshift:
+    enabled: false
+    binary: oc
+    server: ""
+
+# Capability discovery. Leave sources empty and set ENGRT_CAPABILITIES_DIR to
+# this checkout's capabilities/ directory, so `engrt capability list` and
+# names such as `github/repo-standards-drift` resolve here. Runtime never
+# fetches or updates this directory; you clone and pull it yourself.
+capabilities:
+  sources: []
+
+# `gh` steps authenticate as the GitHub provider: Runtime hands `gh` the same
+# authority it validated, and policy applies to both paths.
+command_providers:
+  gh: github
