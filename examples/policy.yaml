@@ -1,0 +1,86 @@
+# Example Engineering Runtime policy for running this catalogue.
+#
+#   export ENGRT_POLICY_FILE="$PWD/examples/policy.yaml"
+#
+# Policy is evaluated before every operation and composes with the safety
+# profile compiled into the Runtime binary, which no document can switch off.
+# This file only narrows what Runtime may do; it never widens the compiled
+# floor.
+#
+# Derived from `engrt config init policy` (engrt 0.13.0), narrowed to what
+# these capabilities use: the GitHub provider, the File Engine and `git`.
+schema_version: 3
+
+providers:
+  github:
+    enabled: true
+    denied:
+      # The `api` escape hatch can reach any REST endpoint. Denying DELETE
+      # means no capability here can delete a repository, branch, label,
+      # environment, ruleset or team access. Capabilities archive or disable
+      # instead, so every change can be undone by a person.
+      - api DELETE
+  files:
+    enabled: true
+    denied:
+      - delete
+
+# File Engine access is default-deny. "." is the directory you run `engrt`
+# from, resolved per command. Capabilities that take a `workdir` input
+# (platform/java-service-scaffold-and-ship, files/notes-roundtrip) need that
+# directory inside it: run them from the parent of `workdir`.
+#
+# Runtime's own configuration, policy, evidence and native credential stores
+# (~/.ssh, ~/.kube, ~/.config/gcloud, ...) are refused inside any root.
+file_policy:
+  read_roots:
+    - "."
+  write_roots:
+    - "."
+  max_read_bytes: 1048576
+  max_list_entries: 1000
+  max_depth: 32
+
+# Only these binaries may run through `engrt command run` or a `binary:` step.
+allowed_binaries:
+  - gh
+  - git
+
+command_policy:
+  # Refused outright, even if someone adds them to allowed_binaries.
+  denied_binaries:
+    - rm
+    - sudo
+    - chmod
+    - curl
+    - wget
+    - ssh
+
+  # Matched against the arguments before Runtime adds context, anywhere in
+  # the command, so a leading global flag cannot get around a denial.
+  rules:
+    git:
+      denied:
+        - push --force
+        - push -f
+        - push --force-with-lease
+        - push --delete
+        - reset --hard
+        - clean -fd
+        - filter-branch
+        - update-ref -d
+    gh:
+      denied:
+        # Use the governed GitHub provider (`engrt github api ...`) instead of
+        # gh's own escape hatch.
+        - api
+        - auth token
+        - repo archive
+        - repo delete
+        - repo edit --visibility
+        - release delete
+        - secret delete
+        - variable delete
+        - run delete
+        - workflow disable
+        - pr merge --admin

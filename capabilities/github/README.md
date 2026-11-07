@@ -1,7 +1,8 @@
 # GitHub capabilities
 
-GitHub workflows. Most are read-only; the [rulesets and environments](#rulesets-and-environments-writes)
-section is the exception and changes repository configuration. Each file has
+GitHub workflows. Most are read-only. Two sections write to GitHub:
+[service lifecycle](#service-lifecycle-writes) and
+[rulesets and environments](#rulesets-and-environments-writes). Each file has
 one fenced `runtime` block, which Runtime executes; the prose around it is
 guidance only.
 
@@ -28,9 +29,12 @@ workflow:
   or contact GitHub. Run `engrt capability plan` before `execute`.
 
 `github-release-notes-preview` calls a `POST` endpoint, but that endpoint only
-computes notes; it publishes nothing. Apart from the rulesets and environments
-section below, everything in this directory uses `GET` reads or read-only
-curated operations.
+computes notes; it publishes nothing. Apart from the two write sections
+below, everything in this directory uses `GET` reads, GraphQL queries or
+read-only curated operations.
+
+To try every capability end to end on disposable repositories, see
+[`demo/`](../../demo/README.md).
 
 ## Repositories
 
@@ -100,6 +104,17 @@ curated operations.
 | [`github-access-review`](github-access-review.md) | Access review — who can do what |
 | [`github-repo-collaborators-list`](github-repo-collaborators-list.md) | Who has access to this repository |
 
+## Standards and drift
+
+Read-only. They report differences; they never fail because a repository
+drifted and never change anything.
+
+| Capability | What it does |
+|---|---|
+| [`repo-standards-drift`](repo-standards-drift.md) | Every way one repository differs from the standard `java-springboot-service-onboard` applies: merge settings, Dependabot, Actions hardening, rulesets, governance files |
+| [`org-standards-drift`](org-standards-drift.md) | The organization half: 2FA, repository creation, default permission, new-repository security defaults and an organization standard ruleset |
+| [`repo-settings-snapshot`](repo-settings-snapshot.md) | One repository's settings, branches, Actions configuration, access and labels, to compare repositories or before and after a change |
+
 ## Releases and incidents
 
 | Capability | What it does |
@@ -116,6 +131,35 @@ curated operations.
 | [`github-org-health-check`](github-org-health-check.md) | Organization health check |
 | [`github-daily-digest`](github-daily-digest.md) | Daily GitHub digest |
 | [`github-graphql-contributors-query`](github-graphql-contributors-query.md) | A custom GraphQL query the `graphql` escape hatch covers, that no curated operation does |
+
+## Service lifecycle (writes)
+
+A service's life on GitHub, from creation to retirement, as governed runs.
+Each one says what it writes at the top, declares `engrt_version:
+">=0.13.0"`, follows **observe → change only when needed → verify**, and is
+safe to rerun: a rerun of a completed run writes nothing. Gates stop a run
+**before** anything is written. Run `engrt capability plan` first. None of
+them deletes anything: the example policy denies `api DELETE`.
+
+| Stage | Capability | What it does |
+|---|---|---|
+| Create | [`java-springboot-service-onboard`](java-springboot-service-onboard.md) | Creates (or completes) a protected Spring Boot service repository: settings, Dependabot, Actions hardening, `dev`/`staging`/`production` environments, service files and CI, default-branch and release-tag rulesets |
+| Adopt | [`repo-governance-standards-pr`](repo-governance-standards-pr.md) | Brings an existing repository up to standard through a pull request with only the missing files; never writes to the default branch |
+| Secure | [`repo-security-features-enable`](repo-security-features-enable.md) | Turns on Dependabot alerts and security updates, and on public repositories secret scanning, push protection and private vulnerability reporting; never turns one off |
+| Organize | [`repo-labels-standard-sync`](repo-labels-standard-sync.md) | Creates the 12 standard labels and corrects colour and description drift; never deletes or renames |
+| Access | [`org-team-repo-access`](org-team-repo-access.md) | Gives a team exactly one permission level on a repository, creating the team when needed |
+| Protect | [`repo-environment-protect`](repo-environment-protect.md) | Required reviewer team, no self-review, a wait timer and release-tag deployments on an environment |
+| Merge | [`repo-pr-merge-when-ready`](repo-pr-merge-when-ready.md) | Squash-merges one pull request at the reviewed commit, only when GitHub reports it `CLEAN` and the `build` check passed |
+| Release | [`repo-release-cut`](repo-release-cut.md) | Publishes a release of one named commit after five gates: green, built by Actions, on the branch, no release blockers, no high or critical Dependabot alerts |
+| Deploy | [`repo-deploy-promote`](repo-deploy-promote.md) | Dispatches the deploy workflow for a released version to an environment, only when that environment does not already have it |
+| Incident | [`repo-change-freeze`](repo-change-freeze.md) | Freezes the default branch with a ruleset, labels and an incident issue |
+| Incident | [`repo-change-freeze-lift`](repo-change-freeze-lift.md) | Disables the freeze ruleset and closes the incident issue with a resolution |
+| Retire | [`repo-decommission`](repo-decommission.md) | Archives a repository, refusing while a pull request is open or a workflow is running; never deletes |
+
+The lifecycle capabilities assume the layout onboarding creates: a required
+`build` check from GitHub Actions, rulesets named `engrt-onboard-*`, and
+environments `dev`, `staging` and `production`. Each file states what it
+expects and what it refuses.
 
 ## Rulesets and environments (writes)
 
@@ -134,6 +178,7 @@ change. None of them can delete anything: default policy denies `api DELETE`.
 
 Typical order for a new deployment environment: `repo-environment-create` with
 `custom_branch_policies` on, then `repo-environment-branch-policy-add` for each
-pattern, then `repo-environment-variable-set` for each variable. Environment
-secrets and protection rules (wait timer, reviewers) are out of reach; each
-file explains why.
+pattern, then `repo-environment-variable-set` for each variable. Use
+`repo-environment-protect` for required reviewers and a wait timer. Environment
+secrets are out of reach: GitHub requires each value to be encrypted on the
+client.
