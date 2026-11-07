@@ -273,8 +273,8 @@ authentication:
     base_url: https://api.github.com
     token_env: ENGRT_GITHUB_TOKEN
     source: github_app
-    app_id: "123456"            # your App's ID, as a quoted string
-    installation_id: "7654321"  # the installation's ID, as a quoted string
+    app_id: "<app id>"                    # from the App's settings page
+    installation_id: "<installation id>"  # from the installation's URL
 ```
 
 ```bash
