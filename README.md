@@ -33,9 +33,13 @@ Most capabilities are read-only. The ones that write to GitHub start with a
 
 Everything you need is on this page: install Runtime, connect it to GitHub,
 run a capability. The commands are for macOS and Linux (`bash`/`zsh`);
-Windows PowerShell equivalents follow each step where they differ. Every
-command from step 3 onward was run as written on Engineering Runtime 0.13.0
-(macOS).
+Windows PowerShell equivalents follow each step where they differ.
+
+Tested as written on macOS (Apple silicon) with Engineering Runtime 0.13.0:
+install options A, B and C, then steps 2 to 9 from a fresh clone. All three
+install options produce the same `engrt` binary. Linux and Windows (option D)
+follow the same published installers and archives but have not been run
+through this guide yet.
 
 ### 1. Install Engineering Runtime
 
@@ -46,7 +50,7 @@ Windows on `amd64` and `arm64`. Pick one way:
 
 ```bash
 brew install engineeringruntime/tap/engineering-runtime
-engrt version
+engrt version            # engrt 0.13.0
 ```
 
 Upgrade later with `brew update && brew upgrade engineering-runtime`.
@@ -64,6 +68,18 @@ curl -fsSL https://raw.githubusercontent.com/engineeringruntime/engineering-runt
 engrt version
 ```
 
+It prints each stage and ends with the location:
+
+```text
+Engineering Runtime v0.13.0 (darwin/arm64)
+  downloading engrt-v0.13.0-darwin-arm64.tar.gz
+  downloading SHA256SUMS.txt
+  verifying checksum
+
+Installed engrt 0.13.0
+  location: /Users/you/.local/bin/engrt
+```
+
 `VERSION` pins a release and `INSTALL_DIR` chooses the directory:
 
 ```bash
@@ -71,7 +87,8 @@ curl -fsSL https://raw.githubusercontent.com/engineeringruntime/engineering-runt
   | VERSION=v0.13.0 INSTALL_DIR="$HOME/.local/bin" sh
 ```
 
-If the script says the directory is not on your `PATH`, add it:
+If it prints `NOTE: … is not on your PATH`, add that directory and open a new
+terminal:
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"     # add this line to ~/.zshrc or ~/.bashrc
@@ -79,23 +96,28 @@ export PATH="$HOME/.local/bin:$PATH"     # add this line to ~/.zshrc or ~/.bashr
 
 **C. By hand (macOS and Linux)**
 
+Run this in an empty directory. It detects your OS and architecture, so there
+is nothing to edit except `VERSION`:
+
 ```bash
 VERSION=v0.13.0
-OS=darwin          # darwin (macOS) or linux
-ARCH=arm64         # arm64 (Apple silicon, Graviton) or amd64 (Intel/AMD)
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')                        # darwin or linux
+ARCH=$(uname -m | sed -e 's/x86_64/amd64/' -e 's/aarch64/arm64/')  # amd64 or arm64
 NAME=engrt-$VERSION-$OS-$ARCH
 BASE=https://github.com/engineeringruntime/engineering-runtime-releases/releases/download/$VERSION
 
 curl -fsSLO "$BASE/$NAME.tar.gz"
 curl -fsSLO "$BASE/SHA256SUMS.txt"
-grep "$NAME.tar.gz" SHA256SUMS.txt | shasum -a 256 -c -    # Linux: sha256sum -c -
+grep "$NAME.tar.gz" SHA256SUMS.txt | shasum -a 256 -c -     # Linux without shasum: sha256sum -c -
 tar -xzf "$NAME.tar.gz"
 mkdir -p ~/.local/bin && install -m 0755 "$NAME/engrt" ~/.local/bin/engrt
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"                         # add this line to ~/.zshrc or ~/.bashrc
 engrt version
 ```
 
-Stop if the checksum line does not end in `OK`.
+The checksum line must print `engrt-v0.13.0-<os>-<arch>.tar.gz: OK`. If it
+prints `FAILED`, stop: the archive is not the published one. Delete it and
+download again.
 
 **D. Windows (PowerShell 7, x64 or Arm64)**
 
