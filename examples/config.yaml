@@ -8,8 +8,7 @@
 #   engrt config validate
 #
 # This file holds no credential. GitHub authority comes from the environment
-# variable named by `token_env` (or from `engrt auth login github`). Never put
-# a token value in this file.
+# variable named by `token_env`. Never put a token value in this file.
 #
 # Derived from `engrt config init config` (engrt 0.13.0), narrowed to the
 # providers these capabilities use. Every other provider is off.
