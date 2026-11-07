@@ -1,8 +1,8 @@
 # Try every capability on demo repositories
 
 [`run-demo.sh`](run-demo.sh) runs every capability in this catalogue through
-`engrt`, using [`examples/config.yaml`](../examples/config.yaml) and
-[`examples/policy.yaml`](../examples/policy.yaml). A pass here means the
+`engrt`, using [`configs/config.yaml`](../configs/config.yaml) and
+[`configs/policy.yaml`](../configs/policy.yaml). A pass here means the
 capability works with those two files as published.
 
 > **Mutating.** The script creates two repositories and a team in the
@@ -49,8 +49,8 @@ named gate, before any write:
 ## Run it
 
 Prerequisites: `engrt` 0.13.0 or later, `jq`, `gh` and `git` on `PATH`, and a
-GitHub token in `ENGRT_GITHUB_TOKEN` (and no `ENGRT_GITHUB_TOKEN_FILE` beside
-it) for a user who can create repositories and teams in the organization.
+GitHub token in `ENGRT_GITHUB_TOKEN` (the config's `source: env`) for a user
+who can create repositories and teams in the organization.
 A classic token needs `repo`, `workflow` and `admin:org`.
 
 ```bash
@@ -77,7 +77,7 @@ Settings: `DEMO_REPO`, `DEMO_LEGACY_REPO`, `DEMO_TEAM`, `DEMO_PRIVATE=true`
 (private repositories; on GitHub Free and Team that turns the
 public-only security features and environment protection into expected plan
 limits), `DEMO_CONFIG` and `DEMO_POLICY` to test your own documents instead of
-the examples. The script header lists them all.
+the ones in `configs/`. The script header lists them all.
 
 ## Results
 

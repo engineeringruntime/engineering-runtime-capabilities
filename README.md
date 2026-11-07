@@ -15,7 +15,7 @@ The same file works for a person at a terminal, a CI job or an AI assistant.
 | [`capabilities/github`](capabilities/github/README.md) | 53 read-only GitHub workflows (repositories, pull requests, Actions, governance, standards drift, releases), plus 17 that write: a service lifecycle from onboarding to retirement, rulesets and Actions environments |
 | [`capabilities/platform`](capabilities/platform/README.md) | Workflows across several providers, including a Java service scaffold-and-ship showcase |
 | [`capabilities/files`](capabilities/files/README.md) | A credential-free File Engine round trip, for checking your setup |
-| [`examples/`](examples/) | A sample `config.yaml` and `policy.yaml` that run every capability here |
+| [`configs/`](configs/) | `config.yaml` and `policy.yaml` that run every capability here, with every GitHub authentication option documented |
 | [`demo/`](demo/README.md) | A script that runs every capability against disposable demo repositories, and its [latest results](demo/RESULTS.md) |
 
 Most capabilities are read-only. The ones that write to GitHub start with a
@@ -175,19 +175,19 @@ Run these from the repository root, in every new terminal (or add them to
 your shell profile with absolute paths):
 
 ```bash
-export ENGRT_CONFIG_FILE="$PWD/examples/config.yaml"
-export ENGRT_POLICY_FILE="$PWD/examples/policy.yaml"
+export ENGRT_CONFIG_FILE="$PWD/configs/config.yaml"
+export ENGRT_POLICY_FILE="$PWD/configs/policy.yaml"
 export ENGRT_CAPABILITIES_DIR="$PWD/capabilities"
 ```
 
 ```powershell
 # Windows
-$env:ENGRT_CONFIG_FILE = "$PWD\examples\config.yaml"
-$env:ENGRT_POLICY_FILE = "$PWD\examples\policy.yaml"
+$env:ENGRT_CONFIG_FILE = "$PWD\configs\config.yaml"
+$env:ENGRT_POLICY_FILE = "$PWD\configs\policy.yaml"
 $env:ENGRT_CAPABILITIES_DIR = "$PWD\capabilities"
 ```
 
-**[`examples/config.yaml`](examples/config.yaml)** says where GitHub authority
+**[`configs/config.yaml`](configs/config.yaml)** says where GitHub authority
 comes from. Without its comments it is:
 
 ```yaml
@@ -203,6 +203,7 @@ authentication:
     enabled: true
     base_url: https://api.github.com   # GitHub Enterprise Server: https://<host>/api/v3
     token_env: ENGRT_GITHUB_TOKEN      # the variable's name, never the token
+    source: env                        # env | file | os_secure_store | github_app | github_actions (step 5)
   gcp:        { enabled: false, binary: gcloud, source: native }
   kubernetes: { enabled: false, source: kubeconfig, kubeconfig_path: "" }
   openshift:  { enabled: false, binary: oc, server: "" }
@@ -212,7 +213,7 @@ command_providers:
   gh: github                      # gh runs with the GitHub provider's authority
 ```
 
-**[`examples/policy.yaml`](examples/policy.yaml)** says what Runtime may do.
+**[`configs/policy.yaml`](configs/policy.yaml)** says what Runtime may do.
 It composes with a safety profile compiled into the binary, which no document
 can switch off. Without its comments it is:
 
@@ -247,34 +248,57 @@ command_policy:
 ```
 
 Neither file holds a credential. Copy them and narrow them for your own use;
-keep `api DELETE` denied unless you have a reason. They are separate from the
-validation-only fixtures in [`validation/`](validation/), which can execute
-nothing.
+keep `api DELETE` denied unless you have a reason.
 
 ### 5. Give Runtime GitHub authority
 
-Create a [personal access token](https://github.com/settings/tokens) and export
-it. Export it in your shell, never put it in a file in this repository:
+Pick **one** source and set `source:` in `configs/config.yaml` to it. The file
+ships with `source: env`. Runtime uses only the source you name: if it fails,
+Runtime stops and never falls back to another one.
+
+| `source:` | Use it for | What to set |
+|---|---|---|
+| `env` (default) | trying it out; scripts | `export ENGRT_GITHUB_TOKEN=<token>` |
+| `file` | CI secrets mounted as files, Kubernetes secret volumes | `export ENGRT_GITHUB_TOKEN_FILE=/path/to/token` (the token on one line) |
+| `os_secure_store` | a person on their own machine (recommended) | run `engrt auth login github` once; the session is kept in the macOS Keychain, Windows Credential Manager or Linux Secret Service |
+| `github_app` | automation that should act as a GitHub App, not a person | add `app_id: "<app id>"` and `installation_id: "<installation id>"` under `source:`, and `export ENGRT_GITHUB_APP_PRIVATE_KEY_FILE=/path/to/app.private-key.pem` |
+| `github_actions` | inside a GitHub Actions job, with the job's `GITHUB_TOKEN` | `GITHUB_TOKEN: ${{ github.token }}` in the job; Runtime accepts it only when it observes it is running in Actions. See [Run it in GitHub Actions](#run-it-in-github-actions) |
+
+For example, to act as a GitHub App:
+
+```yaml
+authentication:
+  github:
+    enabled: true
+    base_url: https://api.github.com
+    token_env: ENGRT_GITHUB_TOKEN
+    source: github_app
+    app_id: "<app id>"                    # from the App's settings page
+    installation_id: "<installation id>"  # from the installation's URL
+```
 
 ```bash
-export ENGRT_GITHUB_TOKEN=<your token>
+export ENGRT_GITHUB_APP_PRIVATE_KEY_FILE="$HOME/keys/my-app.private-key.pem"
 ```
 
+Keep tokens and keys outside this repository, and never put a value in the
+config file: it holds only names and IDs.
+
 ```powershell
-# Windows
+# Windows, source: env
 $env:ENGRT_GITHUB_TOKEN = "<your token>"
 ```
+
+**Token permissions** (`env`, `file` and `os_secure_store` act as you):
 
 | To run | Classic token scopes |
 |---|---|
 | read-only capabilities | `repo`, `read:org` |
 | the write capabilities | add `workflow` (onboarding writes `.github/workflows/ci.yml`) and `admin:org` (team access, organization settings) |
 
-Fine-grained tokens and GitHub Apps work too; each capability lists the exact
-permissions it needs under **What it needs**.
-
-Set only **one** token source. If `ENGRT_GITHUB_TOKEN_FILE` is also set,
-Runtime refuses with `auth_source_ambiguous` rather than guess.
+Fine-grained tokens and GitHub Apps need the matching repository and
+organization permissions; each capability lists them under **What it needs**.
+A GitHub App can change only the repositories it is installed on.
 
 ### 6. Check the setup
 
@@ -284,8 +308,11 @@ engrt auth status
 ```
 
 `config validate` names the config and policy in force (they should be the two
-`examples/` files) and lists `gh` and `git` as installed. `auth status` should
-show `github ✓` with your login.
+`configs/` files) and lists `gh` and `git` as installed. `auth status` should
+show `github ✓` with the source you chose and who you are: your login, or
+`installation:<id>` for a GitHub App. With `github_actions` it shows
+`proof=credential_ready subject=-`: the job token is ready, and it names no
+person.
 
 ### 7. Run your first capability (read-only)
 
@@ -356,11 +383,32 @@ and runs GitHub Actions.
 bash demo/run-demo.sh <organization> check     # touches nothing
 ```
 
+## Run it in GitHub Actions
+
+[`.github/workflows/engrt.yml`](.github/workflows/engrt.yml) is a working
+sample that runs on this repository's own pull requests:
+
+1. installs a pinned, checksum-verified `engrt`;
+2. validates every capability with `configs/`;
+3. switches `configs/config.yaml` to `source: github_actions` and runs
+   read-only capabilities against this repository with the job's own
+   `GITHUB_TOKEN`: short-lived, limited to this repository and to the
+   job's `permissions`, and revoked when the job ends;
+4. prints the job's audit record and verifies it.
+
+The job token acts as an installation, not a person, so use repository reads
+(`github/github-repo-view`, `github/github-repo-health`, …), not user-only
+operations such as `github user get`. To reach other repositories or the
+organization, use `source: github_app` with the App's key stored as a
+repository secret.
+
 ## Troubleshooting
 
 | Symptom | Cause and fix |
 |---|---|
-| `auth_source_ambiguous` | Two token sources are set (for example `ENGRT_GITHUB_TOKEN` and `ENGRT_GITHUB_TOKEN_FILE`). Unset one. |
+| `auth_source_ambiguous` | Your config has no `source:` line and two inputs are set (for example `ENGRT_GITHUB_TOKEN` and `ENGRT_GITHUB_TOKEN_FILE`). Set `source:` (step 5); `configs/config.yaml` already does. |
+| `auth_invalid_credential` | The selected source has no usable value: the variable is unset or empty, or the file is missing or has extra content. |
+| `auth_surface_mismatch` with `job_source_requires_ci` | `source: github_actions` outside a GitHub Actions job. Choose another source locally. |
 | `engrt config validate` shows another config or policy | A different `ENGRT_CONFIG_FILE` / `ENGRT_POLICY_FILE` is exported in your shell profile. Re-run step 4 in this terminal. |
 | `policy denied …` | The sample policy refuses that operation on purpose (for example `api DELETE`, `files delete`, `git push --force`). `plan` shows it before anything runs. |
 | A File Engine step is refused as outside every granted root | Capabilities that take a `workdir` or `path` need it under the directory you run `engrt` from (the policy's `"."`). `cd` to its parent and run again. |
@@ -400,9 +448,9 @@ Before opening a pull request, validate every file:
 sh scripts/validate-corpus.sh
 ```
 
-The script runs `engrt capability validate` on each capability with the
-fixtures in [`validation/`](validation/). It executes nothing and needs no
-credentials.
+The script runs `engrt capability validate` on each capability with the files
+in [`configs/`](configs/). Validation reads no credential, contacts nothing and
+executes nothing.
 
 ## License
 

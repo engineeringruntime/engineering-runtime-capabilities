@@ -1,6 +1,6 @@
-# Example Engineering Runtime policy for running this catalogue.
+# Engineering Runtime policy for running this catalogue.
 #
-#   export ENGRT_POLICY_FILE="$PWD/examples/policy.yaml"
+#   export ENGRT_POLICY_FILE="$PWD/configs/policy.yaml"
 #
 # Policy is evaluated before every operation and composes with the safety
 # profile compiled into the Runtime binary, which no document can switch off.
