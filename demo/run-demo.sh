@@ -21,8 +21,8 @@
 # Use an organization where that is acceptable. Nothing is ever deleted:
 # the example policy denies `api DELETE`.
 #
-# Everything goes through engrt with examples/config.yaml and
-# examples/policy.yaml, so a pass here is a pass for those documents.
+# Everything goes through engrt with configs/config.yaml and
+# configs/policy.yaml, so a pass here is a pass for those documents.
 #
 # Settings (environment):
 #   DEMO_REPO          demo service repository   (default engrt-capabilities-demo)
@@ -32,8 +32,8 @@
 #                      several features need a public repository on the
 #                      GitHub Free and Team plans)
 #   DEMO_RESULTS       results directory         (default demo/results/<org>-<repo>)
-#   DEMO_CONFIG        config to test instead of examples/config.yaml
-#   DEMO_POLICY        policy to test instead of examples/policy.yaml
+#   DEMO_CONFIG        config to test instead of configs/config.yaml
+#   DEMO_POLICY        policy to test instead of configs/policy.yaml
 #   ENGRT              engrt binary              (default: engrt on PATH)
 #
 # Run it from a directory you are happy for engrt to read and write: the
@@ -59,10 +59,10 @@ WORK=$PWD/engrt-demo-work
 FEATURE_BRANCH=demo/add-deploy-workflow
 STANDARDS_BRANCH=chore/engineering-standards
 
-# The examples are always used unless DEMO_CONFIG / DEMO_POLICY name others,
+# configs/ is always used unless DEMO_CONFIG / DEMO_POLICY name others,
 # so a config already exported in your shell does not change what is tested.
-export ENGRT_CONFIG_FILE=${DEMO_CONFIG:-$ROOT/examples/config.yaml}
-export ENGRT_POLICY_FILE=${DEMO_POLICY:-$ROOT/examples/policy.yaml}
+export ENGRT_CONFIG_FILE=${DEMO_CONFIG:-$ROOT/configs/config.yaml}
+export ENGRT_POLICY_FILE=${DEMO_POLICY:-$ROOT/configs/policy.yaml}
 export ENGRT_CAPABILITIES_DIR=$ROOT/capabilities
 
 mkdir -p "$RES"
@@ -167,9 +167,6 @@ phase_check() {
   command -v jq >/dev/null || die "jq is required"
   command -v "$ENGRT" >/dev/null || die "engrt not found"
   log "$("$ENGRT" version)"
-  if [ -n "${ENGRT_GITHUB_TOKEN_FILE:-}" ] && [ -n "${ENGRT_GITHUB_TOKEN:-}" ]; then
-    die "both ENGRT_GITHUB_TOKEN and ENGRT_GITHUB_TOKEN_FILE are set; Runtime refuses an ambiguous source. Unset one."
-  fi
   "$ENGRT" --output json auth status 2>/dev/null | jq -e 'any(.[]; .provider == "github" and .status == "ok")' >/dev/null \
     || die "GitHub authority is not available (engrt auth status)"
   LOGIN=$(api GET /user | jq -r '.login')

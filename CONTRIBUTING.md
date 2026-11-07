@@ -47,8 +47,8 @@ paste.
 
 Follow the [Quick start](README.md#quick-start-from-install-to-your-first-run):
 install `engrt` 0.13.0 or later, `git` and `gh`, and select
-[`examples/config.yaml`](examples/config.yaml) and
-[`examples/policy.yaml`](examples/policy.yaml).
+[`configs/config.yaml`](configs/config.yaml) and
+[`configs/policy.yaml`](configs/policy.yaml).
 
 ## Write it
 
@@ -87,7 +87,7 @@ That names the installed `capability-spec.md` and provider specs. Then:
 
 ```bash
 sh scripts/validate-corpus.sh                       # every file still validates
-engrt capability plan <name> --input …              # ALLOWED under examples/policy.yaml
+engrt capability plan <name> --input …              # ALLOWED under configs/policy.yaml
 engrt capability execute <name> --input …           # read-only: against any repository you can read
 ```
 

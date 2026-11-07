@@ -4,7 +4,7 @@
 |---|---|
 | Date | 2026-11-07 (UTC) |
 | Runtime | `engrt 0.13.0`, Homebrew, macOS arm64 |
-| Config and policy | [`examples/config.yaml`](../examples/config.yaml), [`examples/policy.yaml`](../examples/policy.yaml), unchanged |
+| Config and policy | `examples/config.yaml` and `examples/policy.yaml`, unchanged; since moved to [`configs/`](../configs/) with the same settings (`source: env` is now written out) |
 | GitHub authority | a classic user token in `ENGRT_GITHUB_TOKEN`, from an organization owner |
 | Organization | `engineeringruntime` |
 | Repositories | [`engrt-capabilities-demo`](https://github.com/engineeringruntime/engrt-capabilities-demo) (public, kept as the demo), `engrt-capabilities-demo-legacy` (public, archived by `repo-decommission`) |

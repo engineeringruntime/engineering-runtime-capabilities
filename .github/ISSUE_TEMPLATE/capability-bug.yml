@@ -80,8 +80,9 @@ body:
     attributes:
       label: Configuration
       options:
-        - examples/config.yaml and examples/policy.yaml from this repository, unchanged
+        - configs/config.yaml and configs/policy.yaml from this repository, unchanged
         - my own config or policy (describe the relevant difference below)
+        - configs/ with a different GitHub source (say which: file, os_secure_store, github_app, github_actions)
     validations:
       required: true
   - type: textarea

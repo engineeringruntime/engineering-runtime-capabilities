@@ -1,0 +1,95 @@
+# Engineering Runtime configuration for running this catalogue.
+#
+# Use it as-is, or copy it and edit the copy:
+#
+#   export ENGRT_CONFIG_FILE="$PWD/configs/config.yaml"
+#   export ENGRT_POLICY_FILE="$PWD/configs/policy.yaml"
+#   export ENGRT_CAPABILITIES_DIR="$PWD/capabilities"
+#   engrt config validate
+#   engrt auth status
+#
+# This file holds no credential. Runtime reads GitHub authority from the one
+# source you select below; it never stores a token in this file.
+#
+# Derived from `engrt config init config` (engrt 0.13.0), narrowed to the
+# providers these capabilities use. Every other provider is off.
+schema_version: 2
+
+runtime:
+  name: engineering-runtime
+  log_level: info
+
+# The optional Control Plane stays off: Runtime never contacts a portal and
+# everything runs locally.
+portal:
+  enabled: false
+
+authentication:
+  provider: github
+
+  github:
+    enabled: true
+    # GitHub Enterprise Server: https://<host>/api/v3
+    base_url: https://api.github.com
+    # Names the variable that holds a token for `env` (and, with `_FILE`
+    # appended, the path for `file`). It is a name, never the token.
+    token_env: ENGRT_GITHUB_TOKEN
+
+    # ---- Choose exactly ONE source --------------------------------------
+    # Runtime uses only the source named here. If it fails, Runtime stops;
+    # it never falls back to another source.
+    #
+    # env (default): a token in an environment variable.
+    #   export ENGRT_GITHUB_TOKEN=<token>
+    #
+    # file: a token in a file (one line). Good for CI secrets mounted as
+    #   files and Kubernetes secret volumes.
+    #   source: file
+    #   export ENGRT_GITHUB_TOKEN_FILE=/path/to/token
+    #
+    # os_secure_store: sign in once in a browser; Runtime keeps the session in
+    #   the macOS Keychain, Windows Credential Manager or Linux Secret Service.
+    #   Recommended for a person on their own machine.
+    #   source: os_secure_store
+    #   engrt auth login github
+    #
+    # github_app: act as a GitHub App installation instead of a person. The
+    #   IDs are on the App's settings page and in the installation URL.
+    #   source: github_app
+    #   app_id: "<app id>"
+    #   installation_id: "<installation id>"
+    #   export ENGRT_GITHUB_APP_PRIVATE_KEY_FILE=/path/to/app.private-key.pem
+    #   (or ENGRT_GITHUB_APP_PRIVATE_KEY_B64 with the PEM base64-encoded;
+    #   set exactly one of the two)
+    #
+    # github_actions: inside a GitHub Actions job, use the job's GITHUB_TOKEN.
+    #   Runtime accepts it only when it observes it is running in Actions.
+    #   source: github_actions
+    # ----------------------------------------------------------------------
+    source: env
+
+  # Not used by this catalogue.
+  gcp:
+    enabled: false
+    binary: gcloud
+    source: native
+  kubernetes:
+    enabled: false
+    source: kubeconfig
+    kubeconfig_path: ""
+  openshift:
+    enabled: false
+    binary: oc
+    server: ""
+
+# Capability discovery. Leave sources empty and set ENGRT_CAPABILITIES_DIR to
+# this checkout's capabilities/ directory, so `engrt capability list` and
+# names such as `github/repo-standards-drift` resolve here. Runtime never
+# fetches or updates this directory; you clone and pull it yourself.
+capabilities:
+  sources: []
+
+# `gh` steps authenticate as the GitHub provider: Runtime hands `gh` the same
+# authority it validated, and policy applies to both paths.
+command_providers:
+  gh: github

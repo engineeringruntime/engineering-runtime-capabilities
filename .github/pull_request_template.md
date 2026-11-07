@@ -14,7 +14,7 @@
 ## Checklist
 
 - [ ] `sh scripts/validate-corpus.sh` passes.
-- [ ] `engrt capability plan` passes under [`examples/policy.yaml`](https://github.com/engineeringruntime/engineering-runtime-capabilities/blob/main/examples/policy.yaml) with realistic inputs.
+- [ ] `engrt capability plan` passes under [`configs/policy.yaml`](https://github.com/engineeringruntime/engineering-runtime-capabilities/blob/main/configs/policy.yaml) with realistic inputs.
 - [ ] A capability that writes was executed against a disposable repository, and a rerun wrote nothing.
 - [ ] A capability that writes starts with a **Mutating** banner saying what it changes.
 - [ ] It declares `capability_version` and `engrt_version`, and every step has an `id`.

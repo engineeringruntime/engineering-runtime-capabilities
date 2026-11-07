@@ -1,7 +1,0 @@
-# Validation-only fixture: lists the binaries these capabilities use.
-# Never select this document for capability execute or command run.
-schema_version: 3
-allowed_binaries: [git, gh]
-command_policy:
-  denied_binaries: []
-  rules: {}
