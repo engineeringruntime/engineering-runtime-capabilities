@@ -310,7 +310,9 @@ engrt auth status
 `config validate` names the config and policy in force (they should be the two
 `configs/` files) and lists `gh` and `git` as installed. `auth status` should
 show `github ✓` with the source you chose and who you are: your login, or
-`installation:<id>` for a GitHub App.
+`installation:<id>` for a GitHub App. With `github_actions` it shows
+`proof=credential_ready subject=-`: the job token is ready, and it names no
+person.
 
 ### 7. Run your first capability (read-only)
 
