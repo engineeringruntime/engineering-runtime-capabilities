@@ -1,5 +1,9 @@
 # Engineering Runtime Capabilities
 
+[![engrt](https://github.com/engineeringruntime/engineering-runtime-capabilities/actions/workflows/engrt.yml/badge.svg?branch=main)](https://github.com/engineeringruntime/engineering-runtime-capabilities/actions/workflows/engrt.yml)
+[![License: Apache-2.0](https://img.shields.io/github/license/engineeringruntime/engineering-runtime-capabilities)](LICENSE)
+[![engrt release](https://img.shields.io/github/v/release/engineeringruntime/engineering-runtime-releases?label=engrt)](https://github.com/engineeringruntime/engineering-runtime-releases/releases/latest)
+
 Reusable engineering workflows for [Engineering Runtime](https://github.com/engineeringruntime/engineering-runtime-releases)
 (`engrt`). A capability is a Markdown file with one fenced `runtime` block.
 Runtime executes that block under your policy and records audit evidence. The
