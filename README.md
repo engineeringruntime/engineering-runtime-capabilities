@@ -262,7 +262,7 @@ Runtime stops and never falls back to another one.
 | `file` | CI secrets mounted as files, Kubernetes secret volumes | `export ENGRT_GITHUB_TOKEN_FILE=/path/to/token` (the token on one line) |
 | `os_secure_store` | a person on their own machine (recommended) | run `engrt auth login github` once; the session is kept in the macOS Keychain, Windows Credential Manager or Linux Secret Service |
 | `github_app` | automation that should act as a GitHub App, not a person | add `app_id: "<app id>"` and `installation_id: "<installation id>"` under `source:`, and `export ENGRT_GITHUB_APP_PRIVATE_KEY_FILE=/path/to/app.private-key.pem` |
-| `github_actions` | inside a GitHub Actions job, with the job's `GITHUB_TOKEN` | nothing else; Runtime accepts it only when it observes it is running in Actions |
+| `github_actions` | inside a GitHub Actions job, with the job's `GITHUB_TOKEN` | `GITHUB_TOKEN: ${{ github.token }}` in the job; Runtime accepts it only when it observes it is running in Actions. See [Run it in GitHub Actions](#run-it-in-github-actions) |
 
 For example, to act as a GitHub App:
 
@@ -380,6 +380,25 @@ and runs GitHub Actions.
 ```bash
 bash demo/run-demo.sh <organization> check     # touches nothing
 ```
+
+## Run it in GitHub Actions
+
+[`.github/workflows/engrt.yml`](.github/workflows/engrt.yml) is a working
+sample that runs on this repository's own pull requests:
+
+1. installs a pinned, checksum-verified `engrt`;
+2. validates every capability with `configs/`;
+3. switches `configs/config.yaml` to `source: github_actions` and runs
+   read-only capabilities against this repository with the job's own
+   `GITHUB_TOKEN`: short-lived, limited to this repository and to the
+   job's `permissions`, and revoked when the job ends;
+4. prints the job's audit record and verifies it.
+
+The job token acts as an installation, not a person, so use repository reads
+(`github/github-repo-view`, `github/github-repo-health`, …), not user-only
+operations such as `github user get`. To reach other repositories or the
+organization, use `source: github_app` with the App's key stored as a
+repository secret.
 
 ## Troubleshooting
 

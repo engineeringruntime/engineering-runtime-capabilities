@@ -64,6 +64,7 @@ authentication:
     #
     # github_actions: inside a GitHub Actions job, use the job's GITHUB_TOKEN.
     #   Runtime accepts it only when it observes it is running in Actions.
+    #   Working sample: .github/workflows/engrt.yml in this repository.
     #   source: github_actions
     # ----------------------------------------------------------------------
     source: env

@@ -1,0 +1,113 @@
+# Engineering Runtime in GitHub Actions, as a working sample.
+#
+#   validate             every capability validates with configs/ (no credential)
+#   read-this-repository runs read-only capabilities against this repository
+#                        with the job's own short-lived GITHUB_TOKEN
+#                        (source: github_actions), then shows the audit record
+#
+# Copy it into your own repository: keep the permissions minimal, pin
+# ENGRT_VERSION, and replace the capabilities with the ones you need.
+name: engrt
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# The job token gets only these permissions, and only for this repository.
+# Runtime cannot do more than the token allows.
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+
+concurrency:
+  group: engrt-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  ENGRT_VERSION: v0.13.0
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install engrt (checksum-verified)
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/engineeringruntime/engineering-runtime-releases/main/install.sh \
+            | VERSION="$ENGRT_VERSION" INSTALL_DIR="$HOME/.local/bin" sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Validate every capability
+        run: sh scripts/validate-corpus.sh "$HOME/.local/bin/engrt" "$RUNNER_TEMP/validate-home"
+
+  read-this-repository:
+    needs: validate
+    runs-on: ubuntu-latest
+    env:
+      # A fresh Runtime home per job; never a developer's ~/.engrt.
+      ENGRT_HOME: ${{ runner.temp }}/engrt-home
+      ENGRT_CONFIG_FILE: ${{ runner.temp }}/config.yaml
+      ENGRT_POLICY_FILE: ${{ github.workspace }}/configs/policy.yaml
+      ENGRT_CAPABILITIES_DIR: ${{ github.workspace }}/capabilities
+      # Declares where Runtime runs. It selects no credential.
+      ENGRT_EXECUTION_SURFACE: ci
+      # Self-asserted labels that make the audit record searchable.
+      ENGRT_CONSUMER: ci
+      ENGRT_ACTOR_NAME: capabilities-ci
+      ENGRT_SESSION_ID: ${{ github.run_id }}
+      # The job's token: short-lived, scoped to this repository and to the
+      # permissions above, revoked when the job ends. Runtime uses it only
+      # because the config says `source: github_actions`.
+      GITHUB_TOKEN: ${{ github.token }}
+      REPOSITORY: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install engrt (checksum-verified)
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/engineeringruntime/engineering-runtime-releases/main/install.sh \
+            | VERSION="$ENGRT_VERSION" INSTALL_DIR="$HOME/.local/bin" sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Select the job token (source github_actions)
+        run: |
+          # The same configs/config.yaml, with only the source line changed.
+          sed 's/^    source: env$/    source: github_actions/' configs/config.yaml > "$ENGRT_CONFIG_FILE"
+          grep -q '^    source: github_actions$' "$ENGRT_CONFIG_FILE"
+
+      - name: Check the setup
+        run: |
+          engrt version
+          engrt config validate
+          engrt auth status
+
+      # The job token acts as an installation, not a person: use repository
+      # reads such as these, not user-only operations like `github user get`.
+      - name: Repository metadata (REST)
+        run: engrt capability execute github/github-repo-view --input repository="$REPOSITORY"
+
+      - name: Repository health (GraphQL and gh)
+        run: engrt capability execute github/github-repo-health --input repository="$REPOSITORY"
+
+      - name: Root files and .github
+        run: engrt capability execute github/github-repo-root-files --input repository="$REPOSITORY"
+
+      - name: Labels
+        run: engrt capability execute github/github-repo-labels-list --input repository="$REPOSITORY"
+
+      - name: Actions workflows
+        run: engrt capability execute github/github-actions-workflows-inventory --input repository="$REPOSITORY"
+
+      - name: Audit record of this job
+        if: always()
+        run: |
+          engrt audit tail
+          engrt audit verify
