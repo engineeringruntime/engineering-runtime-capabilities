@@ -1,0 +1,53 @@
+name: Request a capability
+description: Propose a new capability, or a change to an existing one.
+title: "[request] <outcome you want>"
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search first: `engrt capability search "<terms>"` and the
+        [GitHub index](https://github.com/engineeringruntime/engineering-runtime-capabilities/blob/main/capabilities/github/README.md).
+        A capability can only use operations `engrt` already offers; a missing provider or
+        operation is a Runtime request for
+        [engineering-runtime-releases](https://github.com/engineeringruntime/engineering-runtime-releases/issues/new/choose).
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+      description: What should be true after it runs, and who runs it (a person, CI, an AI assistant)?
+      placeholder: Every repository in the organization has the standard labels, and a rerun changes nothing.
+    validations:
+      required: true
+  - type: textarea
+    id: today
+    attributes:
+      label: How you do it today
+      description: The script, manual steps or other tool you would replace.
+  - type: dropdown
+    id: effect
+    attributes:
+      label: Does it change anything?
+      options:
+        - Read-only
+        - Writes (creates or changes something)
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: provider
+    attributes:
+      label: Provider
+      placeholder: GitHub
+    validations:
+      required: true
+  - type: textarea
+    id: inputs
+    attributes:
+      label: Inputs and safety
+      description: What it needs as inputs, and what must stop it before it writes (for example "refuse while a pull request is open").
+  - type: input
+    id: existing
+    attributes:
+      label: Closest existing capability
+      description: If one is close, say what it is missing.
