@@ -369,6 +369,17 @@ bash demo/run-demo.sh <organization> check     # touches nothing
 | A feature is reported as unavailable on a private repository | Secret scanning, push protection, private vulnerability reporting and environment reviewers need a public repository or a paid GitHub plan. Each capability says which. |
 | Runs get slow over time | Runtime appends every run to its evidence journal in its home (`~/.engrt`). For experiments, use a separate one: `export ENGRT_HOME="$HOME/.engrt-demo"`. |
 
+## Report a problem or ask
+
+| About | Where |
+|---|---|
+| A capability in this repository, or a capability you would like | [Issues here](https://github.com/engineeringruntime/engineering-runtime-capabilities/issues/new/choose) |
+| `engrt` itself: install, upgrade, CLI, auth, policy, audit, MCP | [engineering-runtime-releases issues](https://github.com/engineeringruntime/engineering-runtime-releases/issues/new/choose) |
+| Questions and ideas | [Discussions](https://github.com/orgs/engineeringruntime/discussions) |
+| A security vulnerability | privately, through the [contact page](https://engineeringruntime.com/contact/) |
+
+To add or improve a capability, read [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Write one
 
 Author against the contract installed with your Runtime, not a copy:

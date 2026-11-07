@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Problem with engrt itself (install, CLI, auth, policy, audit, MCP)
+    url: https://github.com/engineeringruntime/engineering-runtime-releases/issues/new/choose
+    about: Runtime bugs and feature requests go to the releases repository. This repository is for capability files only.
+  - name: Question or idea to discuss
+    url: https://github.com/orgs/engineeringruntime/discussions
+    about: Ask how to do something, or discuss an idea before opening an issue.
+  - name: Security vulnerability
+    url: https://engineeringruntime.com/contact/
+    about: Do not open a public issue. Report it privately through the contact page.
