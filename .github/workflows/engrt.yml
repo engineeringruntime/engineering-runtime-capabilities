@@ -50,9 +50,6 @@ jobs:
     needs: validate
     runs-on: ubuntu-latest
     env:
-      # A fresh Runtime home per job; never a developer's ~/.engrt.
-      ENGRT_HOME: ${{ runner.temp }}/engrt-home
-      ENGRT_CONFIG_FILE: ${{ runner.temp }}/config.yaml
       ENGRT_POLICY_FILE: ${{ github.workspace }}/configs/policy.yaml
       ENGRT_CAPABILITIES_DIR: ${{ github.workspace }}/capabilities
       # Declares where Runtime runs. It selects no credential.
@@ -79,7 +76,11 @@ jobs:
 
       - name: Select the job token (source github_actions)
         run: |
-          # The same configs/config.yaml, with only the source line changed.
+          # A fresh Runtime home per job, never a developer's ~/.engrt, and a
+          # copy of configs/config.yaml with only the source line changed.
+          echo "ENGRT_HOME=$RUNNER_TEMP/engrt-home" >> "$GITHUB_ENV"
+          echo "ENGRT_CONFIG_FILE=$RUNNER_TEMP/config.yaml" >> "$GITHUB_ENV"
+          ENGRT_CONFIG_FILE="$RUNNER_TEMP/config.yaml"
           sed 's/^    source: env$/    source: github_actions/' configs/config.yaml > "$ENGRT_CONFIG_FILE"
           grep -q '^    source: github_actions$' "$ENGRT_CONFIG_FILE"
 
