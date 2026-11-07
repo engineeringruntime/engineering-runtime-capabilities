@@ -4,6 +4,16 @@ Thanks for helping. This repository holds capability files: Markdown workflows
 that Engineering Runtime (`engrt`) executes. `engrt` itself is closed source
 and lives elsewhere.
 
+## How to get involved
+
+1. **Not sure yet, or just an idea?** Start a [Discussion](https://github.com/orgs/engineeringruntime/discussions/categories/ideas): ask in
+   [Q&A](https://github.com/orgs/engineeringruntime/discussions/categories/q-a), or share an idea in [Ideas](https://github.com/orgs/engineeringruntime/discussions/categories/ideas).
+2. **It is concrete?** Open an issue: a capability problem or request in
+   [engineering-runtime-capabilities](https://github.com/engineeringruntime/engineering-runtime-capabilities/issues/new/choose), a problem or request for `engrt`
+   itself in [engineering-runtime-releases](https://github.com/engineeringruntime/engineering-runtime-releases/issues/new/choose).
+3. **Want to build it?** Capabilities are open source: open a
+   [pull request](https://github.com/engineeringruntime/engineering-runtime-capabilities/pulls) to the capabilities repository.
+
 ## Where to report what
 
 | You found… | Report it in |
@@ -11,7 +21,8 @@ and lives elsewhere.
 | A capability here fails, gives a wrong result, or its prose is wrong | [this repository's issues](https://github.com/engineeringruntime/engineering-runtime-capabilities/issues/new/choose) (**A capability does not work**) |
 | A capability you would like | [this repository's issues](https://github.com/engineeringruntime/engineering-runtime-capabilities/issues/new/choose) (**Request a capability**) |
 | A problem with `engrt` itself: install, upgrade, CLI, auth, policy, audit, a provider operation, MCP | [engineering-runtime-releases issues](https://github.com/engineeringruntime/engineering-runtime-releases/issues/new/choose) |
-| A question, or an idea to discuss first | [Discussions](https://github.com/orgs/engineeringruntime/discussions) |
+| A question | [Discussions → Q&A](https://github.com/orgs/engineeringruntime/discussions/categories/q-a) |
+| An idea that is not concrete yet | [Discussions → Ideas](https://github.com/orgs/engineeringruntime/discussions/categories/ideas) |
 | A security vulnerability | privately, through the [contact page](https://engineeringruntime.com/contact/). Never in a public issue |
 
 Not sure whether it is the capability or `engrt`? Run the same operation

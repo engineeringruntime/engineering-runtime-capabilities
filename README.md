@@ -375,7 +375,8 @@ bash demo/run-demo.sh <organization> check     # touches nothing
 |---|---|
 | A capability in this repository, or a capability you would like | [Issues here](https://github.com/engineeringruntime/engineering-runtime-capabilities/issues/new/choose) |
 | `engrt` itself: install, upgrade, CLI, auth, policy, audit, MCP | [engineering-runtime-releases issues](https://github.com/engineeringruntime/engineering-runtime-releases/issues/new/choose) |
-| Questions and ideas | [Discussions](https://github.com/orgs/engineeringruntime/discussions) |
+| Questions | [Discussions → Q&A](https://github.com/orgs/engineeringruntime/discussions/categories/q-a) |
+| Ideas not yet concrete | [Discussions → Ideas](https://github.com/orgs/engineeringruntime/discussions/categories/ideas) |
 | A security vulnerability | privately, through the [contact page](https://engineeringruntime.com/contact/) |
 
 To add or improve a capability, read [CONTRIBUTING.md](CONTRIBUTING.md).
