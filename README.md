@@ -31,38 +31,110 @@ Most capabilities are read-only. The ones that write to GitHub start with a
 
 ## Quick start: from install to your first run
 
-Ten minutes, on macOS or Linux. Every command below was run on Engineering
-Runtime 0.13.0.
+Everything you need is on this page: install Runtime, connect it to GitHub,
+run a capability. The commands are for macOS and Linux (`bash`/`zsh`);
+Windows PowerShell equivalents follow each step where they differ. Every
+command from step 3 onward was run as written on Engineering Runtime 0.13.0
+(macOS).
 
 ### 1. Install Engineering Runtime
 
-With Homebrew (macOS and Linux):
+Engineering Runtime is one binary, `engrt`, published for macOS, Linux and
+Windows on `amd64` and `arm64`. Pick one way:
+
+**A. Homebrew (macOS and Linux)**
 
 ```bash
 brew install engineeringruntime/tap/engineering-runtime
-engrt version            # engrt 0.13.0 or later
+engrt version
 ```
 
-Without Homebrew, download the archive for your platform from the
+Upgrade later with `brew update && brew upgrade engineering-runtime`.
+
+**B. Install script (macOS and Linux)**
+
+Downloads the archive for your OS and architecture from the latest release,
+verifies it against the release's `SHA256SUMS.txt` (nothing is installed if it
+does not match) and installs `engrt` in `/usr/local/bin` when that is writable,
+otherwise in `~/.local/bin`. It needs `curl`, `tar` and `shasum` or
+`sha256sum`.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/engineeringruntime/engineering-runtime-releases/main/install.sh | sh
+engrt version
+```
+
+`VERSION` pins a release and `INSTALL_DIR` chooses the directory:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/engineeringruntime/engineering-runtime-releases/main/install.sh \
+  | VERSION=v0.13.0 INSTALL_DIR="$HOME/.local/bin" sh
+```
+
+If the script says the directory is not on your `PATH`, add it:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"     # add this line to ~/.zshrc or ~/.bashrc
+```
+
+**C. By hand (macOS and Linux)**
+
+```bash
+VERSION=v0.13.0
+OS=darwin          # darwin (macOS) or linux
+ARCH=arm64         # arm64 (Apple silicon, Graviton) or amd64 (Intel/AMD)
+NAME=engrt-$VERSION-$OS-$ARCH
+BASE=https://github.com/engineeringruntime/engineering-runtime-releases/releases/download/$VERSION
+
+curl -fsSLO "$BASE/$NAME.tar.gz"
+curl -fsSLO "$BASE/SHA256SUMS.txt"
+grep "$NAME.tar.gz" SHA256SUMS.txt | shasum -a 256 -c -    # Linux: sha256sum -c -
+tar -xzf "$NAME.tar.gz"
+mkdir -p ~/.local/bin && install -m 0755 "$NAME/engrt" ~/.local/bin/engrt
+export PATH="$HOME/.local/bin:$PATH"
+engrt version
+```
+
+Stop if the checksum line does not end in `OK`.
+
+**D. Windows (PowerShell 7, x64 or Arm64)**
+
+The script verifies the checksum and installs `engrt.exe` in
+`%USERPROFILE%\.local\bin`:
+
+```powershell
+Invoke-RestMethod https://raw.githubusercontent.com/engineeringruntime/engineering-runtime-releases/main/install.ps1 -OutFile install.ps1
+./install.ps1                                   # or: ./install.ps1 -Version v0.13.0 -InstallDirectory C:\Tools\engrt
+$env:PATH = "$HOME\.local\bin;$env:PATH"      # also add it to your user PATH for new terminals
+engrt version
+```
+
+By hand: download `engrt-v0.13.0-windows-<amd64|arm64>.zip` and
+`SHA256SUMS.txt` from the
 [latest release](https://github.com/engineeringruntime/engineering-runtime-releases/releases/latest),
-check it against `SHA256SUMS.txt` in the same release, and put `engrt` on your
-`PATH`. The [releases repository](https://github.com/engineeringruntime/engineering-runtime-releases)
-also has a shell installer and a Windows PowerShell installer.
+compare `Get-FileHash <zip>` with its line, and put `engrt.exe` on your `PATH`.
 
-Read-only capabilities need 0.10.0 or later. The capabilities that write need
-**0.13.0 or later**; each file declares the version it needs, and an older
-Runtime refuses it.
-
-To upgrade later: `brew update && brew upgrade engineering-runtime`.
+**Which version?** `engrt version` must print **0.13.0 or later** for the
+capabilities that write; read-only ones work from 0.10.0. Each capability
+declares the version it needs, and an older Runtime refuses it rather than
+run it differently. Runtime creates its home (`~/.engrt`) on the first command;
+there is no separate setup step.
 
 ### 2. Install `git` and `gh`
 
-Some GitHub operations run through the GitHub CLI and some capabilities use
-`git`:
+Some GitHub operations run through the [GitHub CLI](https://cli.github.com) and
+some capabilities use `git`:
+
+| Platform | Install |
+|---|---|
+| macOS | `brew install git gh` |
+| Debian, Ubuntu | `sudo apt install git gh` (or GitHub's [apt repository](https://github.com/cli/cli/blob/trunk/docs/install_linux.md) for a current `gh`) |
+| Fedora, RHEL | `sudo dnf install git gh` |
+| Windows | `winget install --id Git.Git` and `winget install --id GitHub.cli` |
 
 ```bash
 git --version
-gh --version             # https://cli.github.com
+gh --version
 ```
 
 You do **not** need `gh auth login`: Runtime hands `gh` the authority it has
@@ -84,6 +156,13 @@ your shell profile with absolute paths):
 export ENGRT_CONFIG_FILE="$PWD/examples/config.yaml"
 export ENGRT_POLICY_FILE="$PWD/examples/policy.yaml"
 export ENGRT_CAPABILITIES_DIR="$PWD/capabilities"
+```
+
+```powershell
+# Windows
+$env:ENGRT_CONFIG_FILE = "$PWD\examples\config.yaml"
+$env:ENGRT_POLICY_FILE = "$PWD\examples\policy.yaml"
+$env:ENGRT_CAPABILITIES_DIR = "$PWD\capabilities"
 ```
 
 **[`examples/config.yaml`](examples/config.yaml)** says where GitHub authority
@@ -157,6 +236,11 @@ it. Export it in your shell, never put it in a file in this repository:
 
 ```bash
 export ENGRT_GITHUB_TOKEN=<your token>
+```
+
+```powershell
+# Windows
+$env:ENGRT_GITHUB_TOKEN = "<your token>"
 ```
 
 | To run | Classic token scopes |
