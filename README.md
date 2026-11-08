@@ -39,11 +39,13 @@ Everything you need is on this page: install Runtime, connect it to GitHub,
 run a capability. The commands are for macOS and Linux (`bash`/`zsh`);
 Windows PowerShell equivalents follow each step where they differ.
 
-Tested as written on macOS (Apple silicon) with Engineering Runtime 0.13.0:
-install options A, B and C, then steps 2 to 9 from a fresh clone. All three
-install options produce the same `engrt` binary. Linux and Windows (option D)
-follow the same published installers and archives but have not been run
-through this guide yet.
+The first-run steps below use the currently published installer or Homebrew
+formula, without pinning a release. The preserved terminal output is a
+**v0.13.0 snapshot**, verified on macOS (Apple silicon); it is not a promise
+that later releases print identical output. The original guide's install
+options and steps 2–9 were tested with v0.13.0 on macOS. Linux and Windows
+follow the published installers but were not independently run through this
+guide at that time.
 
 ### 1. Install Engineering Runtime
 
@@ -54,7 +56,7 @@ Windows on `amd64` and `arm64`. Pick one way:
 
 ```bash
 brew install engineeringruntime/tap/engineering-runtime
-engrt version            # engrt 0.13.0
+engrt version
 ```
 
 Upgrade later with `brew update && brew upgrade engineeringruntime/tap/engineering-runtime`. Use the full name:
@@ -73,7 +75,8 @@ curl -fsSL https://raw.githubusercontent.com/engineeringruntime/engineering-runt
 engrt version
 ```
 
-It prints each stage and ends with the location:
+For reference, this is the output **captured with v0.13.0 on macOS arm64**.
+The currently published release may print a different version:
 
 ```text
 Engineering Runtime v0.13.0 (darwin/arm64)
@@ -85,12 +88,17 @@ Installed engrt 0.13.0
   location: /Users/you/.local/bin/engrt
 ```
 
-`VERSION` pins a release and `INSTALL_DIR` chooses the directory:
+`VERSION` optionally pins a specific published release. To change the install
+directory while tracking the latest published release, omit `VERSION`:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/engineeringruntime/engineering-runtime-releases/main/install.sh \
-  | VERSION=v0.13.0 INSTALL_DIR="$HOME/.local/bin" sh
+  | INSTALL_DIR="$HOME/.local/bin" sh
 ```
+
+To reproduce a particular release, select its tag from the
+[release downloads](https://github.com/engineeringruntime/engineering-runtime-releases/releases)
+and set `VERSION` explicitly.
 
 If it prints `NOTE: … is not on your PATH`, add that directory and open a new
 terminal:
@@ -101,28 +109,11 @@ export PATH="$HOME/.local/bin:$PATH"     # add this line to ~/.zshrc or ~/.bashr
 
 **C. By hand (macOS and Linux)**
 
-Run this in an empty directory. It detects your OS and architecture, so there
-is nothing to edit except `VERSION`:
-
-```bash
-VERSION=v0.13.0
-OS=$(uname -s | tr '[:upper:]' '[:lower:]')                        # darwin or linux
-ARCH=$(uname -m | sed -e 's/x86_64/amd64/' -e 's/aarch64/arm64/')  # amd64 or arm64
-NAME=engrt-$VERSION-$OS-$ARCH
-BASE=https://github.com/engineeringruntime/engineering-runtime-releases/releases/download/$VERSION
-
-curl -fsSLO "$BASE/$NAME.tar.gz"
-curl -fsSLO "$BASE/SHA256SUMS.txt"
-grep "$NAME.tar.gz" SHA256SUMS.txt | shasum -a 256 -c -     # Linux without shasum: sha256sum -c -
-tar -xzf "$NAME.tar.gz"
-mkdir -p ~/.local/bin && install -m 0755 "$NAME/engrt" ~/.local/bin/engrt
-export PATH="$HOME/.local/bin:$PATH"                         # add this line to ~/.zshrc or ~/.bashrc
-engrt version
-```
-
-The checksum line must print `engrt-v0.13.0-<os>-<arch>.tar.gz: OK`. If it
-prints `FAILED`, stop: the archive is not the published one. Delete it and
-download again.
+If you need to download and verify archives manually, follow the
+[version-selectable manual installation instructions](https://github.com/engineeringruntime/engineering-runtime-releases#by-hand-macos-and-linux)
+in the releases repository. Select the exact published tag there; archive and
+checksum verification must target the same release. The steps here do not
+duplicate version-specific archive names.
 
 **D. Windows (PowerShell 7, x64 or Arm64)**
 
@@ -131,12 +122,12 @@ The script verifies the checksum and installs `engrt.exe` in
 
 ```powershell
 Invoke-RestMethod https://raw.githubusercontent.com/engineeringruntime/engineering-runtime-releases/main/install.ps1 -OutFile install.ps1
-./install.ps1                                   # or: ./install.ps1 -Version v0.13.0 -InstallDirectory C:\Tools\engrt
+./install.ps1                                   # omit -Version for latest published release
 $env:PATH = "$HOME\.local\bin;$env:PATH"      # also add it to your user PATH for new terminals
 engrt version
 ```
 
-By hand: download `engrt-v0.13.0-windows-<amd64|arm64>.zip` and
+By hand: download the Windows ZIP for your selected published version and
 `SHA256SUMS.txt` from the
 [latest release](https://github.com/engineeringruntime/engineering-runtime-releases/releases/latest),
 compare `Get-FileHash <zip>` with its line, and put `engrt.exe` on your `PATH`.
